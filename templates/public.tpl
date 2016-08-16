@@ -1,0 +1,4 @@
+<h1>Su sitio web '{$domain}' ha sido publicado</h1>
+<p>Hemos publicado su sitio web en Apretaste con el nombre <b>{$domain}</b> y el t&iacute;tulo <b>{$title}</b> y agregamos <b>{$num_files}</b> archivos a su web, reconocidos de los adjuntos que nos envi&oacute;.</p>
+{space5}
+<center><a href="http://apretaste.com/w/{$domain}/index.html">Haga clic aqu&iacute; para visitar su sitio web</a></center>

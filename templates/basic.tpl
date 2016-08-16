@@ -1,9 +1,7 @@
-<h1>Hemos descargado su website</h1>
-<p>Su website <b>{$url}</b> fue descargada y adjunta a este email como PDF.</p>
-
-{if not $images}
-	<p>La website adjunta <b>no</b> contiene im&aacute;genes. Env&iacute;e un email con el asunto: "WEB FULL {$url}" si desea recibir la website con im&aacute;genes. Las im&aacute;genes incrementan el tama&ntilde;o del adjunto y <u>pueden consumir masivamante su cr&eacute;dito</u> si usa Nauta.</p>
-	<center>
-		{button href="WEB FULL {$url}" caption="Ver im&aacute;genes"}
-	</center>
-{/if}
+<p>Se te muestra la direcci&oacute;n web que haz solicitado: <b>{$url}</b>.  Puedes obtenerla en formato PDF {link caption="con" href="WEB FULL {$url}"} o {link caption="sin im&aacute;genes" href="WEB FULL {$url}"}.
+La p&aacute;gina que se te muestra tiene un tama&ntilde;o aproximado de <b>{$body_length}Kb</b>.
+</p>
+<h1>{$title}</h1>
+<fieldset style="{$style}">
+{$body}
+</fieldset>
