@@ -235,29 +235,32 @@ class Web extends Service
     	$responseContent = array('query' => $request->query);
     	$template = 'results.tpl';
     	
-    	// STEP 1: SEARCH WITH GOOOOOOGLE
+    	if ($source == 'web')
+    	{
+	    	// STEP 1: SEARCH WITH GOOOOOOGLE
+	    	
+	        // Initialize the search class
+	        $cs = new Fogg\Google\CustomSearch\CustomSearch();
+	        
+	        // Perform a simple search
+	        $gresults = $cs->simpleSearch($request->query);
+	        
+	        if (isset($gresults->items))
+	        	foreach ($gresults->items as $gresult){
+	        		$results[] =  array(
+	        			"title" => $gresult->htmlTitle,
+	        			"url" => $gresult->link,
+	        			"note" => $gresult->htmlSnippet
+	        		);
+	        }
+    	}
     	
-        // Initialize the search class
-        $cs = new Fogg\Google\CustomSearch\CustomSearch();
-        
-        // Perform a simple search
-        $gresults = $cs->simpleSearch($request->query);
-        
-        if (isset($gresults->items))
-        	foreach ($gresults->items as $gresult){
-        		$results[] =  array(
-        			"title" => $gresult->htmlTitle,
-        			"url" => $gresult->link,
-        			"note" => $gresult->htmlSnippet
-        		);
-        }
-        
         // if not results with google, then ...
         if (empty($results)) {
         	
         	// STEP 2: SEARCH WITH FAROOOOO
         	if (strlen($request->query) >= $this->config['min_search_query_len']) 
-        		$results = $this->search($request->query);
+        		$results = $this->search($request->query, $source);
         	
         	foreach($results as $k => $v)
         		$results[$k]->note = $v->kwic;        	
@@ -1862,15 +1865,21 @@ class Web extends Service
 		// download the website as pdf
 		$file = "$wwwroot/temp/" . $this->utils->generateRandomHash() . ".pdf";
 		$showimage = $images ? "--images" : "--no-images";
-		shell_exec("/usr/local/bin/wkhtmltopdf -lq --no-background $showimage --disable-external-links --disable-forms --disable-javascript --viewport-size 1600x900 $url $file");
+		$command = " -lq --no-background $showimage --disable-external-links --disable-forms --disable-javascript --viewport-size 1600x900 $url $file";
+		shell_exec("/usr/local/bin/wkhtmltopdf $command");
 
 		// error if the web could not be downloaded
 		if( ! file_exists($file))
 		{
-			$response = new Response();
-			$response->setResponseSubject("Error descargando su website");
-			$response->createFromText("Tuvimos un error descargando la website <b>$url</b>. Por favor intente nuevamente en algunos minutos.");
-			return $response;
+			shell_exec("/usr/bin/wkhtmltopdf $command");
+			
+			if( ! file_exists($file))
+			{
+				$response = new Response();
+				$response->setResponseSubject("Error descargando su website");
+				$response->createFromText("Tuvimos un error descargando la website <b>$url</b>. Por favor intente nuevamente en algunos minutos.");
+				return $response;
+			}
 		}
 
 		// respond to the user with the pdf of website attached
