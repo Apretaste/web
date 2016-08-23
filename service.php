@@ -1732,7 +1732,7 @@ class Web extends Service
     public function _publicar(Request $request)
     {
     	$connection = new Connection();
-    	
+    	$wwwroot = $this->pathToService."/../../public/w/";
     	$domain = trim($request->query);
     	$title = '';
     	$p = strpos($domain, ' ');
@@ -1750,11 +1750,11 @@ class Web extends Service
     	if (!is_array($websites)) 
     		$websites = array();
     	
-    	if (!file_exists($this->wwwroot."/w"))
-    		mkdir($this->wwwroot."/w");
+    	if (!file_exists($wwwroot))
+    		mkdir($wwwroot);
     	
     	$exists = false;
-    	if (file_exists($this->wwwroot."/w/$domain"))
+    	if (file_exists($wwwroot."$domain"))
     	{
     		$exists = true;
     		$sql = "SELECT * FROM _web_sites WHERE domain ='$domain';";
@@ -1772,7 +1772,7 @@ class Web extends Service
     	} 
     	else
     	{
-    		mkdir($this->wwwroot."/w/$domain");    		
+    		mkdir($wwwroot."$domain");    		
     	}
     	
     	$num_files = 0;
@@ -1787,8 +1787,8 @@ class Web extends Service
     					$num_files++;
     					$filename = $at->name; // basename($at->path);
     					$content = file_get_contents($at->path);
-    					$filePath = "$wwwroot/public/w/$domain/$filename";
-    					file_put_contents($filePath, $content);
+						$filePath = $wwwroot."$domain/$filename";
+    					file_put_contents($filePath, base64_decode($content));
     				}
     			}
     		}
@@ -1796,18 +1796,18 @@ class Web extends Service
     	
     	$index_default = "<h1>$domain</h1>";
     	
-    	if (!file_exists($this->wwwroot."/w/$domain/index.html"))
+    	if (!file_exists($wwwroot."$domain/index.html"))
     	{
-    		file_put_contents($this->wwwroot."/w/$domain/index.html", $index_default);
+    		file_put_contents($wwwroot."$domain/index.html", $index_default);
     	}
     	
     	if ($exists)
     	{
-    		$sql = "UPDATE _web_sties SET title = '$title' WHERE domain = '$domain';";
+    		$sql = "UPDATE _web_sites SET title = '$title' WHERE domain = '$domain';";
     	}
     	else 
     	{
-    		$sql = "INSERT INTO _web_sties (domain, title, owner) VALUES ('$domain', '$title','$owner');";
+    		$sql = "INSERT IGNORE INTO _web_sites (domain, title, owner) VALUES ('$domain', '$title','$owner');";
     	}
     
     	$connection->deepQuery($sql);
