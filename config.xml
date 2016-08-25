@@ -2,8 +2,7 @@
 	<serviceName>web</serviceName>
 	<serviceAliases>
 		<alias>navegar</alias>
-		<alias>web</alias>
-		<alias>google</alias>
+		<alias>browse</alias>
 	</serviceAliases>
 	<serviceDescription><![CDATA[Buscar y navegar en Internet mediante el email]]></serviceDescription>
 	<creatorEmail>kumahavana@gmail.com</creatorEmail>
