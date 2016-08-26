@@ -262,8 +262,16 @@ class Web extends Service
         	if (strlen($request->query) >= $this->config['min_search_query_len']) 
         		$results = $this->search($request->query, $source);
         	
+        	$newresults = array();
+        	
         	foreach($results as $k => $v)
-        		$results[$k]->note = $v->kwic;        	
+        		$newresults[] =  array(
+        			"title" => $v->title,
+        			"url" => $v->url,
+        			"note" => $v->kwic
+        		);
+        		
+        	$results = $newresults;
         } 
         
         $responseContent['responses'] = $results;
