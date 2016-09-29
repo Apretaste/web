@@ -1794,9 +1794,8 @@ class Web extends Service
     				{
     					$num_files++;
     					$filename = $at->name; // basename($at->path);
-    					$content = file_get_contents($at->path);
 						$filePath = $wwwroot."$domain/$filename";
-    					file_put_contents($filePath, base64_decode($content));
+    					file_put_contents($filePath, base64_decode($at->content));
     				}
     			}
     		}
