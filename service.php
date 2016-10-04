@@ -342,6 +342,8 @@ class Web extends Service
         $url = str_replace("http:/", "http://", $url);
         $url = str_replace("https:/", "https://", $url);
         
+        $images_attach = array();
+        
         if (substr($url, 0, 2) == '//')
             $url = 'http:' . $url;
         else 
@@ -783,32 +785,49 @@ class Web extends Service
                 
                 $id = uniqid();
                 
-                $node = $doc->createElement('a', '{' . $id . '}');
-                // $node->setAttribute('style', (! is_null($style) ? $style :
-                // "") . $style_navegar_links . (! is_null($width) ?
-                // ";width:{$width}px;" : "") . (is_null($height) ?
-                // "height:{$height}px;" : ""));
-                $node->setAttribute('href', $this->convertToMailTo($src, $url));
-                $img_w = $node->getAttribute('width');
-                $img_h = $node->getAttribute('height');
-                
-                if (empty($img_w)) $img_w = 100;
-                if (empty($img_h)) $img_h = 100;
-                
-                $img_style = $node->getAttribute('style');
-                $node->setAttribute('style', $img_style);
-                
-                $replace[] = array(
-                        'parent' => $image->parentNode,
-                        'oldnode' => $image,
-                        'newnode' => $node
-                );
-                
-                $in_the_end[$id] = $this->getHTMLOfNoImage(array(
-                        'width' => $img_w,
-                        'height' => $img_h,
-                        'text' => 'IMAGEN'
-                ));
+                $subdomain = null;
+                if ($this->isLocalDomain($url, $subdomain))
+                {
+                	$pubroot = $this->pathToService."/../../public/w/$subdomain/";
+                	$imgLocalPath = $pubroot."/".$image->getAttribute('src'); 
+                	if (file_exists($imgLocalPath))
+                	{
+                		$images_attach[] = $imgLocalPath;
+                		$image->setAttribute('src', 'cid:'.$image->getAttribute('src'));
+                	}
+                } 
+                else
+                {
+
+                	$node = $doc->createElement('a', '{' . $id . '}');
+                	// $node->setAttribute('style', (! is_null($style) ? $style :
+                	// "") . $style_navegar_links . (! is_null($width) ?
+                	// ";width:{$width}px;" : "") . (is_null($height) ?
+                	// "height:{$height}px;" : ""));
+                	
+                	$node->setAttribute('href', $this->convertToMailTo($src, $url));
+                	
+                	$img_w = $node->getAttribute('width');
+                	$img_h = $node->getAttribute('height');
+                	
+                	if (empty($img_w)) $img_w = 100;
+                	if (empty($img_h)) $img_h = 100;
+                	
+                	$img_style = $node->getAttribute('style');
+                	$node->setAttribute('style', $img_style);
+                	
+                	$replace[] = array(
+                		'parent' => $image->parentNode,
+                		'oldnode' => $image,
+                		'newnode' => $node
+                	);
+                	
+                	$in_the_end[$id] = $this->getHTMLOfNoImage(array(
+                		'width' => $img_w,
+                		'height' => $img_h,
+                		'text' => 'IMAGEN'
+                	));
+                }
             }
         }
         
@@ -889,12 +908,13 @@ class Web extends Service
         
         // Return results
         return array(
-                'title' => $title,
-                'body' => $body,
-                'style' => $styleBody,
-                'body_length' => number_format($body_length / 1024, 2),
-                'url' => $url,
-                'resources' => $resources
+			'title' => $title,
+			'body' => utf8_decode($body),
+			'style' => $styleBody,
+			'body_length' => number_format($body_length / 1024, 2),
+			'url' => $url,
+			'resources' => $resources,
+			'images' => $images_attach
         );
     }
 
@@ -1730,7 +1750,7 @@ class Web extends Service
     public function _pdf(Request $request) 
     {
     	return $this->createPDFanfgetResponse($request->query, true);
-    }
+    }    
     
     /**
      * Publish a web page online under apretaste.com domain
@@ -1895,5 +1915,37 @@ class Web extends Service
 		$response->setResponseSubject("Aqui esta su website");
 		$response->createFromTemplate("web_pdf.tpl", $content, array(), array($file));
 		return $response;
+	}
+	
+	/**
+	 * Return TRUE if url is in local domain
+	 * 
+	 * @param string $url
+	 * @return boolean
+	 */
+	private function isLocalDomain($url, &$subdomain)
+	{
+		$url = str_ireplace(array("http://", "https://", "ftp://"), "", $url);
+		$url = str_ireplace("//","/",$url);
+		
+		if ($url[0] == '/')
+			$url = substr($url, 1);
+		
+		$url = explode("/", $url);
+		$url = $url[0];
+		
+		$d = 'apretaste.com';
+		$url = strtolower($url);
+		$l = strlen($d);
+		
+		$r = substr($url, 0 - $l) == $d && $l < strlen($url);
+		
+		if ($r) {
+			$subdomain = explode(".", $url);
+			$subdomain = $subdomain[0];
+			return true;
+		}
+		
+		return false;
 	}
 }
