@@ -180,6 +180,23 @@ class Web extends Service
         $response->setResponseSubject(empty($responseContent['title']) ? "Navegando con Apretaste" : $responseContent['title']);
         $response->createFromTemplate("{$responseContent['type']}.tpl", $responseContent, (isset($responseContent['images']) ? $responseContent['images'] : array()), (isset($responseContent['attachments']) ? $responseContent['attachments'] : array()));
         
+        // set minimal layout
+        $subdomain = null;
+        $url = str_replace("///", "/", $url);
+        $url = str_replace("//", "/", $url);
+        $url = str_replace("http:/", "http://", $url);
+        $url = str_replace("https:/", "https://", $url);
+        
+        if (substr($url, 0, 2) == '//')
+        	$url = 'http:' . $url;
+        else
+        	if (substr($url, 0, 1) == '/') $url = 'http:/' . $url;
+        
+        if ($this->isLocalDomain($url, $subdomain))
+        {
+        	$response->setEmailLayout('email_minimal.tpl');
+        }
+        
         return $response;
     }
 
