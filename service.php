@@ -926,7 +926,7 @@ class Web extends Service
         // Return results
         return array(
 			'title' => $title,
-			'body' => utf8_decode($body),
+			'body' => $body,
 			'style' => $styleBody,
 			'body_length' => number_format($body_length / 1024, 2),
 			'url' => $url,
