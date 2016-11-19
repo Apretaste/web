@@ -40,14 +40,24 @@ class Web extends Service
             
             $db = new Connection();
             
+            // get visits
             $sql = "SELECT * FROM _navegar_visits WHERE site is not null and site <> '' ORDER BY usage_count DESC LIMIT 10;";
             
             $result = $db->deepQuery($sql);
             if (! isset($result[0])) $result = false;
             
+            // get internal websites
+            $sites = false;
+            $sql = "SELECT * FROM _web_sites LIMIT 20;";
+            $sites = $db->deepQuery($sql);
+            
+            if ( ! isset($sites[0]))
+            	$sites = false;
+            
             $response->createFromTemplate("welcome.tpl", array(
                     'max_attachment_size' => $this->config['max_attachment_size'],
-                    'visits' => $result
+                    'visits' => $result,
+            		'sites' => $sites
             ));
             
             return $response;
@@ -1863,6 +1873,29 @@ class Web extends Service
     		'title' => $title,
     		'num_files' => $num_files
     	));
+    	
+    	// notify to their friends
+    	$person = $this->utils->getPerson($request->email);
+    	$r = $connection->deepQuery("SELECT * FROM relations WHERE user2 = '{$request->email}' AND (type='follow' OR type='friend') AND confirmed = 1;");
+    	
+    	$friends = array();
+    	
+    	if (is_array($r))
+    		foreach($r as $user)
+    			$friends[] = $user->user1;
+    			
+    	$r = $connection->deepQuery("SELECT * FROM relations WHERE user1='{$request->email}' AND type='friend' AND confirmed = 1;");
+    	
+    	if (is_array($r))
+    		foreach($r as $user)
+    			$friends[] = $user->user2;
+    			
+    	foreach($friends as $f)
+    		$this->utils->addNotification($f, 'WEB PUBLICAR', "@{$person->username} ha publicado una web en Apretaste", 'WEB http://'.$domain.'.apretaste.com');
+    	
+    	// put in pizarra
+    	$text = ($exists ? "He actualizado mi" : "He publicado un"). " sitio web en Apretaste. Pueden visitarlo usando el serivicio <b>WEB http://$domain.apretaste.com</b>";
+    	$connection->deepQuery("INSERT INTO _pizarra_notes (email, text) VALUES ('{$request->email}', '$text')");
     	
     	return $response;
     }

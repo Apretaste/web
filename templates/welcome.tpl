@@ -1,74 +1,25 @@
 <h1>Bienvenido a navegar en Internet</h1>
-<p align="justify">Este servicio le permitir&aacute; <b>buscar y visitar direcciones en Internet mediante el email</b>, 
-d&iacute;gase, sitios webs, descargar archivos peque&ntilde;os, ver canales de noticias ({link href="WIKIPEDIA RSS" caption="RSS"}, 
-{link href="WIKIPEDIA Atom" caption="Atom"}), acceder a servidores 
-de archivo {link href="WIKIPEDIA FTP" caption="FTP"}, ver im&aacute;genes, entre otros. Los enlaces a otras direcciones en 
-Internet podr&aacute; seguirlos haciendo clic en ellos cuando se le muestren y enviando los correos preparados con ese fin.</p>
+<p align="justify">Este servicio te permite <b>buscar y visitar direcciones en Internet mediante el email y publicar webs est&aacute;ticas</b>, navegando de correo en correo. 
+Haga clic en los siguientes ejemplos para probarlos.</p>
 
-<p align="justify">Las <b>im&aacute;genes de los sitios webs se le mostrar&aacute;n como enlaces</b> para 
-obtenerlas en un correo aparte. Esas im&aacute;genes <b>ser&aacute;n reducidas</b> para que le puedan ser 
-entregadas con facilidad.</p>
-
-<p align="justify">Los dem&aacute;s tipos de <b>archivos que solicite le ser&aacute;n entregados como 
-adjuntos</b>, siempre y cuando no excedan los <b></b>{$max_attachment_size} kilobytes</b> despu&eacute;s 
-de comprimirlos en <b>formato ZIP</b>.</p>
-
-<p align="justify">Podr&aacute;s <b>interactuar con algunos formularios en la web y posiblemente mantener 
-sesiones activas en sitios</b> en los cuales debes registrarte para poder visitarlos. En esta funcionalidad estamos trabajando 
-para mejorarla.</p>
-
-<h2>C&oacute;mo navegar?</h2>
-<p align="justify">Para utilizar este servicio debe enviar un correo a Apretaste y en el asunto escribir WEB seguida 
-de dos posibles datos:</p>
-<ol>
-	<li><b>una direcci&oacute;n en Internet</b>, d&iacute;gase un sitio web, canal de noticias, servidor de archivos, imagen u otro archivo, por ejemplo:
-		<ul>
-			<li>Para: {APRETASTE_EMAIL}</li>
-			<li>Asunto: <b>WEB http://revolico.com/computadoras</b></li>
-		</ul>
-		<p>Apretaste acceder&aacute; a ese sitio por usted y se lo traer&aacute; a su email para que 
-		pueda navegar en &eacute;l.</p>
-		<center>{button href="WEB http://revolico.com/computadoras" caption="Probar visitar" color="blue"}</center>
-		{space10}
-	</li>
-	
-	<li><b>una frase para buscar en Internet</b>, por ejemplo:
-		<ul>
-			<li>Para: {APRETASTE_EMAIL}</li>
-			<li>Asunto: <b>WEB cuba</b></li>
-		</ul>
-		<p>Apretaste buscar&aacute; en la web los sitios que hablen de "cuba".</p>
-		<center>{button href="WEB cuba" caption="Probar buscar" color="blue"}</center>
-	</li>
-</ol> 
-
-<h2>Los subservicios</h2>
-<p>Actualmente este servicio contiene 2 subservicios:</p>
-<p align="justify"><b>WEB MOVIL:</b> Agregando la palabra MOVIL al principio podr&aacute;s navegar en 
-Internet identific&aacute;ndote como un dispositivo m&oacute;vil. 
-Esto es &uacute;til para obtener p&aacute;ginas en formato reducido, t&iacute;pico en estos dispositivos.</p> 
-<center>{button href="WEB MOVIL facebook.com" caption="Probar m&oacute;vil"}</center>
-
-<p align="justify"><b>WEB NOTICIAS:</b> Agregando la palabra NOTICIAS al principio podras buscar noticias en internet.</p> 
-<center>{button href="WEB NOTICIAS obama" caption="Probar noticias"}</center>
-{space10}
-<h2>Algunos sitios que pueden ser de tu inter&eacute;s</h2>
-<p>Si no sabes por donde empezar te listamos aqu&iacute; algunos sitios populares que pueden 
-ser de tu inter&eacute;s:</p>
-<ul>
-	<li>{link href="WEB http://carlostercero.ca/" caption ="carlostercero.ca - Tienda Carlos III"}</li>
-	<li>{link href="WEB http://lyrics.com/" caption ="lyrics.com - Letras de m&uacute;sica"}</li>
-	<li>{link href="WEB http://revolico.com/" caption ="revolico.com - Revolico"}</li>
-	<li>{link href="WEB http://wikia.com" caption ="wikia.com - Enciclopedias"}</li>
-	<li>{link href="WEB http://es.wikipedia.org/" caption ="Wikipedia, la enciclopedia libre"}</li>
-	<li>{link href="WEB http://blogspot.com" caption ="blogspot.com - Blogs"}</li>
-	<li>{link href="WEB http://wordpress.com" caption ="wordpress.com - Blogs"}</li>
-	<li>{link href="WEB http://20minutos.es" caption ="20minutos.es - Blogs 20 Minutos"}</li>
-	<li>{link href="WEB http://cnn.com" caption ="cnn.com - CNN Noticias"}</li>
-	<li>{link href="WEB http://feeds.bbci.co.uk/news/england/rss.xml" caption ="Canal BBC Noticias"}</li>
-	<li>{link href="WEB http://Espn.go.com" caption ="Espn.go.com - Noticias deportivas"}</li>
-	<li>{link href="WEB ftp://ftp.4d.com/" caption="ftp.4d.com - Ejemplo servidor FTP"}</li>	
-</ul>
+<center>
+	{button href="WEB http://revolico.com/computadoras" caption="Visitar sitio web"} 
+	{button href="WEB PDF http://revolico.com/computadoras" caption="Sitio como PDF"}
+	{button href="WEB cuba" caption="Buscar en Internet"}
+</center>
+{space5}
+<center>
+	{button href="WEB ftp://ftp.4d.com/" caption="Servidor FTP"} 
+	{button href="WEB http://feeds.bbci.co.uk/news/england/rss.xml" caption="Canal de Noticias"}
+	{button href="WEB NOTICIAS cuba" caption="Buscar Noticias"}
+</center>
+{space5}
+<center>
+	{button href="WEB MOVIL https://m.facebook.com" caption="Navegar como m&oacute;vil"}
+	{button href="WEB http://goes.gsfc.nasa.gov/goescolor/goeseast/hurricane2/color_med/latest.jpg" caption="Ver imagen"}
+	{button href="WEB http://ftp.drupal.org/files/projects/gratis-7.x-1.0.tar.gz" caption="Descargar archivo"}
+</center>
+ 
 {if $visits !== false}
 	<h2>Sitios m&aacute;s visitados</h2>
 	<p>Estos son los sitios m&aacute;s visitados por los usuarios de este servicio:</p>
@@ -78,4 +29,27 @@ ser de tu inter&eacute;s:</p>
 		<li>{link href="WEB {$item->site}" caption="{$item->site}"}</li>
 	{/foreach}
 {/if}
+{space5}
+<h1>C&oacute;mo publicar un sitio web en Apretaste?</h1>
+<p>Escribe un correo y en el asunto pon la palabra WEB PUBLICAR seguida de una palabra que identifica tu sitio. 
+Luego adjunta los archivos que componen tu sitio. Por ejemplo:</p>
+
+Para: <b>{apretaste_email}</b><br/>
+Asunto: <b>WEB PUBLICAR misitio</b><br/>
+Ajuntos: <b>index.html, imagen.jpg, style.css</b><br/>
+
+<p>El adjunto index.html es requerido y si no se env&iacute;a se crear&aacute; uno por defecto. Tu sitio web quedar&aacute; publicado en la direcci&oacute;n:
+http://<b>misitio</b>.apretaste.com. 
 </ul>
+
+<center>{button href="WEB PUBLICAR misitio" caption="Probar publicar"}</center>
+{if $sites !== false}
+	<h3>Sitios publicados en Apretaste</h3>
+	{foreach item=item from=$sites}
+		<li>{link href="WEB {$item}.apretaste.com" caption="{$item}"}</li>
+	{/foreach}
+{/if}
+{space5}
+
+<center>{link href="WEB terminos.apretaste.com" caption="T&eacute;rminos de Uso"} | 
+{link href="WEB credito.apretaste.com" caption="C&oacute;mo obtener cr&eacute;dito"}</center>
