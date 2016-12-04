@@ -10,6 +10,7 @@
  */
 use Goutte\Client;
 use ForceUTF8\Encoding;
+use GuzzleHttp\Exception\ConnectException;
 
 class Web extends Service
 {
@@ -48,12 +49,16 @@ class Web extends Service
             
             // get internal websites
             $sites = false;
-            $sql = "SELECT * FROM _web_sites LIMIT 20;";
+            $sql = "SELECT * FROM _web_sites order by inserted desc LIMIT 20;";
             $sites = $db->deepQuery($sql);
             
             if ( ! isset($sites[0]))
             	$sites = false;
             
+            if (is_array($sites)) foreach($sites as $k=>$site)
+            		if (trim($site->title)==='')
+            			$sites[$k]->title = $site->domain . ".apretaste.com";
+            		
             $response->createFromTemplate("welcome.tpl", array(
                     'max_attachment_size' => $this->config['max_attachment_size'],
                     'visits' => $result,
@@ -135,7 +140,7 @@ class Web extends Service
                     return $response;
             }
         }
-        
+                
         // Asume HTTP access
         
         // Preparing POST data
@@ -1997,5 +2002,67 @@ class Web extends Service
 		}
 		
 		return false;
+	}
+	
+	/**
+	 * Subservice PAGINAS
+	 * 
+	 * @param Request $request
+	 * @return Response
+	 */
+	public function _paginas($request)
+	{
+		$connection = new Connection();
+		$wwwroot = $this->pathToService."/../../public/w/";
+		
+		$limit = 10;
+		$offset = intval(trim($request->query));
+		if ($offset < 1) $offset = 1;
+		$offset -= 1;
+		$offset *= $limit;
+		
+		$total = $connection->deepQuery("SELECT count(*) as t FROM _web_sites;");
+		$total = $total[0]->t;
+		
+		$sites = $connection->deepQuery("SELECT * FROM _web_sites order by inserted desc LIMIT $offset, $limit;");
+		$offsets = intval($total / $limit) + 1;
+		
+		if ($offsets < 2) $offsets = 0;
+		
+		$pagging = array();
+		for($i = 1; $i <= $offsets; $i++) $pagging[]= $i;
+		
+		$response = new Response();
+		
+		if (is_array($sites))
+			if (count($sites) > 0)
+			{
+				foreach($sites as $k=>$site)
+				{
+					if (trim($site->title)==='')
+						$sites[$k]->title = $site->domain . ".apretaste.com";
+						$summary = '';
+						$findex = $wwwroot."{$site->domain}/index.html";
+						if (file_exists($findex))
+						{
+							$summary = file_get_contents($findex);
+							$summary = strip_tags($summary);
+							$summary = substr($summary, 0, 200) . "...";
+						}
+						$sites[$k]->summary = $summary;
+				}
+				
+				$response->setResponseSubject("Directorio de paginas en Apretaste!");
+				$response->createFromTemplate('sites_list.tpl', array(
+					'sites' => $sites,
+					'pagging' => $pagging 
+				));
+				
+				return $response;
+			}
+		
+		$response->setResponseSubject('No se econtraron paginas en Apretaste!');
+		$response->createFromText("No se econtraron p&aacute;ginas en Apretaste!");
+		return $response;
 	}
 }
