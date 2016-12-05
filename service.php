@@ -1840,7 +1840,7 @@ class Web extends Service
     	{
     		if (isset($at->type))
     		{
-    			if (strpos("jpg,jpeg,image/jpg,image/jpeg,image/png,png,image/gif,gif,text/plain,text,html,text/html,text/css,application/javascript",$at->type)!==false)
+    			if (strpos("jpg,jpeg,image/jpg,image/jpeg,image/png,png,image/gif,gif,text/plain,text,html,text/html,text/css,application/javascript,otf,application/x-font-ttf,image/svg+xml,application/vnd.ms-fontobject,application/x-font-woff,application/x-font-woff2,application/octet-stream",$at->type)!==false)
     			{
     				if (isset($at->path))
     				{
