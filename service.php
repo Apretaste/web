@@ -48,8 +48,7 @@ class Web extends Service
             if (! isset($result[0])) $result = false;
             
             // get internal websites
-            $sites = false;
-            $sql = "SELECT * FROM _web_sites order by inserted desc LIMIT 20;";
+            $sql = "SELECT * FROM _web_sites order by inserted desc LIMIT 10;";
             $sites = $db->deepQuery($sql);
             
             if ( ! isset($sites[0]))
@@ -182,7 +181,6 @@ class Web extends Service
         }
         
         // Save stats
-        
         $this->saveVisit($argument);
         
         // Create response
