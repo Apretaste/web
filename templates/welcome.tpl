@@ -3,7 +3,7 @@
 Haga clic en los siguientes ejemplos para probarlos.</p>
 
 {button icon="&#9729;" size="small" href="WEB http://revolico.com/computadoras" caption="Visitar sitio web" style="font-size:15px;margin-bottom:5px;padding:5px;"}
-{button icon="&Popf;"  size="small" href="WEB PDF http://revolico.com/computadoras" caption="Sitio como PDF" style="font-size:15px;margin-bottom:5px;padding:5px;"}
+{button icon="&#8473;" size="small" href="WEB PDF http://revolico.com/computadoras" caption="Sitio como PDF" style="font-size:15px;margin-bottom:5px;padding:5px;"}
 {button icon="&#8494;" size="small" href="WEB cuba" caption="Buscar en Internet" style="font-size:15px;margin-bottom:5px;padding: 5px;"}
 {button icon="&#9783;" size="small" href="WEB ftp://ftp.4d.com/" caption="Servidor de archivos"  style="font-size:15px;margin-bottom:5px;padding:5px;"}
 {button icon="&#9741;" size="small" href="WEB NOTICIAS cuba" caption="Buscar Noticias"  style="font-size:15px;margin-bottom:5px;padding:5px;"}
@@ -26,7 +26,7 @@ Haga clic en los siguientes ejemplos para probarlos.</p>
 {space5}
 
 {if $visits !== false}
-	<h2>Sitios m&aacute;s visitados</h2>
+	<h1>Sitios m&aacute;s visitados</h1>
 	<p>Estos son los sitios m&aacute;s visitados por los usuarios de este servicio:</p>
 	<ul>
 	{foreach item=item from=$visits}
