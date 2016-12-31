@@ -1806,6 +1806,8 @@ class Web extends Service
     	}
     	
     	$domain = $this->utils->clearStr($domain);
+		$domain = strtolower($domain); // super important!
+		
     	$owner = $request->email;
     	
     	$websites = $connection->deepQuery("SELECT * FROM _web_sites WHERE owner = '$owner';");
@@ -1838,6 +1840,8 @@ class Web extends Service
     		mkdir($www_root."$domain");    		
     	}
     	
+		$files_changed = [];
+		
     	$num_files = 0;
     	foreach($request->attachments as $at)
     	{
@@ -1849,7 +1853,9 @@ class Web extends Service
     				{
     					$num_files++;
     					$filename = $at->name;
+						$files_changed[] = $filename;
 						$filePath = $www_root."$domain/$filename";
+						unlink($filePath);
     					file_put_contents($filePath, base64_decode($at->content));
     				}
     			}
@@ -1879,7 +1885,8 @@ class Web extends Service
     	$response->createFromTemplate("public.tpl", array(
     		'domain' => $domain,
     		'title' => $title,
-    		'num_files' => $num_files
+    		'num_files' => $num_files,
+			'files_changed' => $files_changed
     	));
     	
     	// notify to their friends
