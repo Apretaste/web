@@ -1855,7 +1855,8 @@ class Web extends Service
     					$filename = $at->name;
 						$files_changed[] = $filename;
 						$filePath = $www_root."$domain/$filename";
-						unlink($filePath);
+						if (file_exists($filePath))
+							unlink($filePath);
     					file_put_contents($filePath, base64_decode($at->content));
     				}
     			}
