@@ -14,10 +14,10 @@ use GuzzleHttp\Exception\ConnectException;
 
 class Web extends Service
 {
-    private $mailto = null;
+    private $mail_to = null;
     private $request = null;
     private $config = null;
-    private $wwwroot = null;
+    private $www_root = null;
     private $base = null;
 
     /**
@@ -54,9 +54,10 @@ class Web extends Service
             if ( ! isset($sites[0]))
             	$sites = false;
             
-            if (is_array($sites)) foreach($sites as $k=>$site)
-            		if (trim($site->title)==='')
-            			$sites[$k]->title = $site->domain . ".apretaste.com";
+            if (is_array($sites))
+                foreach($sites as $k=>$site)
+            	    if (trim($site->title)==='')
+            	        $sites[$k]->title = $site->domain . ".apretaste.com";
             		
             $response->createFromTemplate("welcome.tpl", array(
                     'max_attachment_size' => $this->config['max_attachment_size'],
@@ -191,8 +192,7 @@ class Web extends Service
         
         $response = new Response();
         $response->setResponseSubject(empty($responseContent['title']) ? "Navegando con Apretaste" : $responseContent['title']);
-        $response->createFromTemplate("{$responseContent['type']}.tpl", $responseContent, (isset($responseContent['images']) ? $responseContent['images'] : array()), (isset($responseContent['attachments']) ? $responseContent['attachments'] : array()));
-        
+
         // set minimal layout
         $subdomain = null;
         $url = str_replace("///", "/", $url);
@@ -208,8 +208,12 @@ class Web extends Service
         if ($this->isLocalDomain($url, $subdomain))
         {
         	$response->setEmailLayout('email_minimal.tpl');
+            $responseContent['type'] = 'minimal';
         }
-        
+
+        $response->createFromTemplate("{$responseContent['type']}.tpl", $responseContent, (isset($responseContent['images']) ? $responseContent['images'] : array()), (isset($responseContent['attachments']) ? $responseContent['attachments'] : array()));
+
+
         return $response;
     }
 
@@ -228,7 +232,7 @@ class Web extends Service
         
         // Get path to the www folder
         $di = \Phalcon\DI\FactoryDefault::getDefault();
-        $this->wwwroot = $di->get('path')['root'];
+        $this->www_root = $di->get('path')['root'];
         
         // Load libs
         
@@ -440,10 +444,12 @@ class Web extends Service
         }
         
         $http_headers = array();
-        // Gedt HTTP headers
+
+        // Get HTTP headers
         try {
             $http_headers = $http_response->getHeaders();
         } catch (Exception $e) {}
+
         if (isset($http_headers['Content-Type'])) {
             $ct = $http_headers['Content-Type'][0];
             
@@ -988,14 +994,14 @@ class Web extends Service
      */
     private function getTempDir ()
     {
-        $wwwroot = $this->wwwroot;
+        $www_root = $this->www_root;
         
-        if (! file_exists("$wwwroot/temp/navegar")) mkdir("$wwwroot/temp/navegar");
-        if (! file_exists("$wwwroot/temp/navegar/cookies")) mkdir("$wwwroot/temp/navegar/cookies");
-        if (! file_exists("$wwwroot/temp/navegar/files")) mkdir("$wwwroot/temp/navegar/files");
-        if (! file_exists("$wwwroot/temp/navegar/searchcache")) mkdir("$wwwroot/temp/navegar/searchcache");
+        if (! file_exists("$www_root/temp/navegar")) mkdir("$www_root/temp/navegar");
+        if (! file_exists("$www_root/temp/navegar/cookies")) mkdir("$www_root/temp/navegar/cookies");
+        if (! file_exists("$www_root/temp/navegar/files")) mkdir("$www_root/temp/navegar/files");
+        if (! file_exists("$www_root/temp/navegar/searchcache")) mkdir("$www_root/temp/navegar/searchcache");
         
-        return "$wwwroot/temp/navegar";
+        return "$www_root/temp/navegar";
     }
 
     /**
@@ -1160,9 +1166,9 @@ class Web extends Service
      */
     private function getMailTo ()
     {
-        if (is_null($this->mailto)) $this->mailto = $this->utils->getValidEmailAddress();
+        if (is_null($this->mail_to)) $this->mail_to = $this->utils->getValidEmailAddress();
         
-        return $this->mailto;
+        return $this->mail_to;
     }
 
     /**
@@ -1184,10 +1190,10 @@ class Web extends Service
         $fullhref = $this->getFullHref($href, $url);
         if ($di->get('environment') == "sandbox" && ! $ignoreSandbox) {
             $wwwhttp = $di->get('path')['http'];
-            return "$wwwhttp/run/display?subject=NAVEGAR " . $fullhref . ($body == '' ? '' : "&amp;body=$body");
+            return "$wwwhttp/run/display?subject=WEB " . $fullhref . ($body == '' ? '' : "&amp;body=$body");
         } else {
             
-            $newhref = 'mailto:' . $this->getMailTo() . '?subject=NAVEGAR ' . $fullhref;
+            $newhref = 'mailto:' . $this->getMailTo() . '?subject=WEB ' . $fullhref;
             $newhref = str_replace("//", "/", $newhref);
             $newhref = str_replace("//", "/", $newhref);
             $newhref = str_replace("//", "/", $newhref);
@@ -1606,7 +1612,6 @@ class Web extends Service
         );
         
         // $oDoc = $parser->parseString($style);
-        $contrast = 'white';
         $new_style = '';
         
         // fixing contrast
@@ -1624,16 +1629,15 @@ class Web extends Service
                 case 'background-color':
                 case 'background':
                 case 'background-image':
-                    
-                    if (strpos($value, 'url') === false && strpos($value, ' ') === false) {
+                    if (strpos($value, 'url') === false && strpos($value, ' ') === false)
+                    {
                         $background = $value;
-                        break;
                     }
-                    
+
                     break;
             }
         }
-        
+
         // set default contrast as white & black
         if ($background !== false && $color !== false) {
             // calculate as decimal
@@ -1647,7 +1651,7 @@ class Web extends Service
                 
                 // get the best contrast
                 $contrast = $this->getContrastYIQ(substr($color->getHexValue(), 1));
-                
+
                 $background->toRGB();
                 switch ($contrast) {
                     case 'white':
@@ -1786,11 +1790,12 @@ class Web extends Service
      * Publish a web page online under apretaste.com domain
      * 
      * @param Request $request
+     * @return Response
      */
     public function _publicar(Request $request)
     {
     	$connection = new Connection();
-    	$wwwroot = $this->pathToService."/../../public/w/";
+    	$www_root = $this->pathToService."/../../public/w/";
     	$domain = trim($request->query);
     	$title = '';
     	$p = strpos($domain, ' ');
@@ -1808,11 +1813,11 @@ class Web extends Service
     	if (!is_array($websites)) 
     		$websites = array();
     	
-    	if (!file_exists($wwwroot))
-    		mkdir($wwwroot);
+    	if (!file_exists($www_root))
+    		mkdir($www_root);
     	
     	$exists = false;
-    	if (file_exists($wwwroot."$domain"))
+    	if (file_exists($www_root."$domain"))
     	{
     		$exists = true;
     		$sql = "SELECT * FROM _web_sites WHERE domain ='$domain';";
@@ -1830,7 +1835,7 @@ class Web extends Service
     	} 
     	else
     	{
-    		mkdir($wwwroot."$domain");    		
+    		mkdir($www_root."$domain");    		
     	}
     	
     	$num_files = 0;
@@ -1840,11 +1845,11 @@ class Web extends Service
     		{
     			if (strpos("jpg,jpeg,image/jpg,image/jpeg,image/png,png,image/gif,gif,text/plain,text,html,text/html,text/css,application/javascript,otf,application/x-font-ttf,image/svg+xml,application/vnd.ms-fontobject,application/x-font-woff,application/x-font-woff2,application/octet-stream",$at->type)!==false)
     			{
-    				if (isset($at->path))
+    				if (isset($at->name))
     				{
     					$num_files++;
-    					$filename = $at->name; // basename($at->path);
-						$filePath = $wwwroot."$domain/$filename";
+    					$filename = $at->name;
+						$filePath = $www_root."$domain/$filename";
     					file_put_contents($filePath, base64_decode($at->content));
     				}
     			}
@@ -1853,9 +1858,9 @@ class Web extends Service
     	
     	$index_default = "<h1>$domain</h1>";
     	
-    	if (!file_exists($wwwroot."$domain/index.html"))
+    	if (!file_exists($www_root."$domain/index.html"))
     	{
-    		file_put_contents($wwwroot."$domain/index.html", $index_default);
+    		file_put_contents($www_root."$domain/index.html", $index_default);
     	}
     	
     	if ($exists)
@@ -1909,7 +1914,8 @@ class Web extends Service
 	 * @author salvipascual
 	 * @param String $url
 	 * @param Boolean $images: true to include images on the attached PDF
-	 * */
+     * @return Response
+	 **/
 	private function createPDFanfgetResponse($url, $images=true)
 	{
 		// do not allow empty pages
@@ -1940,12 +1946,12 @@ class Web extends Service
 
 		// get path to the www folder
 		$di = \Phalcon\DI\FactoryDefault::getDefault();
-		$wwwroot = $di->get('path')['root'];
+		$www_root = $di->get('path')['root'];
 
 		// download the website as pdf
-		$file = "$wwwroot/temp/" . $this->utils->generateRandomHash() . ".pdf";
-		$showimage = $images ? "--images" : "--no-images";
-		$command = " -lq --no-background $showimage --disable-external-links --disable-forms --disable-javascript --viewport-size 1600x900 $url $file";
+		$file = "$www_root/temp/" . $this->utils->generateRandomHash() . ".pdf";
+		$show_image = $images ? "--images" : "--no-images";
+		$command = " -lq --no-background $show_image --disable-external-links --disable-forms --disable-javascript --viewport-size 1600x900 $url $file";
 		shell_exec("/usr/local/bin/wkhtmltopdf $command");
 
 		// error if the web could not be downloaded
@@ -1988,11 +1994,16 @@ class Web extends Service
 		$url = $url[0];
 		
 		$d = 'apretaste.com';
+
 		$url = strtolower($url);
+        $p = strpos($url,':');
+
+        if ($p !== false)
+            $url = substr($url, 0, $p);
+
 		$l = strlen($d);
-		
 		$r = substr($url, 0 - $l) == $d && $l < strlen($url);
-		
+
 		if ($r) {
 			$subdomain = explode(".", $url);
 			$subdomain = $subdomain[0];
@@ -2011,7 +2022,7 @@ class Web extends Service
 	public function _paginas($request)
 	{
 		$connection = new Connection();
-		$wwwroot = $this->pathToService."/../../public/w/";
+		$www_root = $this->pathToService."/../../public/w/";
 		
 		$limit = 10;
 		$offset = intval(trim($request->query));
@@ -2040,7 +2051,7 @@ class Web extends Service
 					if (trim($site->title)==='')
 						$sites[$k]->title = $site->domain . ".apretaste.com";
 						$summary = '';
-						$findex = $wwwroot."{$site->domain}/index.html";
+						$findex = $www_root."{$site->domain}/index.html";
 						if (file_exists($findex))
 						{
 							$summary = file_get_contents($findex);
