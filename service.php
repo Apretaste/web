@@ -2038,7 +2038,7 @@ class Web extends Service
 		$offset -= 1;
 		$offset *= $limit;
 		
-		$total = $connection->deepQuery("SELECT count(*) as t FROM _web_sites;");
+		$total = $connection->deepQuery("SELECT count(domain) as t FROM _web_sites;");
 		$total = $total[0]->t;
 		
 		$sites = $connection->deepQuery("SELECT * FROM _web_sites order by inserted desc LIMIT $offset, $limit;");
