@@ -1853,6 +1853,7 @@ class Web extends Service
 					{
 						$num_files++;
 						$filename = $at->name;
+						$filename = str_ireplace(".php", "", $filename);
 						$files_changed[] = $filename;
 						$filePath = $www_root."$domain/$filename";
 						if (file_exists($filePath))
