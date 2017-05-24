@@ -15,7 +15,6 @@ use GuzzleHttp\Exception\ConnectException;
 class Web extends Service
 {
 	private $mail_to = null;
-	private $request = null;
 	private $config = null;
 	private $www_root = null;
 	private $base = null;
@@ -224,9 +223,6 @@ class Web extends Service
 	 */
 	private function prepare ($request)
 	{
-		// Save request
-		$this->request = $request;
-
 		// Load configuration
 		$this->loadServiceConfig();
 
@@ -2038,7 +2034,7 @@ class Web extends Service
 		if ($offset < 1) $offset = 1;
 		$offset -= 1;
 		$offset *= $limit;
-		
+
 		$total = $connection->deepQuery("SELECT count(domain) as t FROM _web_sites;");
 		$total = $total[0]->t;
 
