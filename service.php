@@ -75,10 +75,9 @@ class Web extends Service
 		// Force HTTP in malformed URLs
 		if (substr($request->query, 0, 2) == '//') {
 			$request->query = 'http:' . $request->query;
-		} else
-			if (substr($request->query, 0, 1) == '/') {
-				$request->query = 'http:/' . $request->query;
-			}
+		} elseif (substr($request->query, 0, 1) == '/') {
+			$request->query = 'http:/' . $request->query;
+		}
 
 		// Detecting FTP access
 		$scheme = strtolower(parse_url($request->query, PHP_URL_SCHEME));
@@ -170,13 +169,11 @@ class Web extends Service
 		$url = $argument;
 		$page = $this->getHTTP($argument, $method, $paramsbody, $agent);
 
+		// Return invalid page
 		if ($page === false) {
-			// Return invalid page
 			$response = new Response();
 			$response->setResponseSubject("No se pudo acceder");
-			$response->createFromTemplate('http_error.tpl', array(
-					'url' => $url
-			));
+			$response->createFromTemplate('http_error.tpl', array('url' => $url));
 			return $response;
 		}
 
@@ -187,7 +184,7 @@ class Web extends Service
 		$responseContent = $page;
 		$responseContent['url'] = $argument;
 
-		if (! isset($responseContent['type'])) $responseContent['type'] = 'basic';
+		if ( ! isset($responseContent['type'])) $responseContent['type'] = 'basic';
 
 		$response = new Response();
 		$response->setResponseSubject(empty($responseContent['title']) ? "Navegando con Apretaste" : $responseContent['title']);
@@ -198,11 +195,8 @@ class Web extends Service
 		$url = str_replace("//", "/", $url);
 		$url = str_replace("http:/", "http://", $url);
 		$url = str_replace("https:/", "https://", $url);
-
-		if (substr($url, 0, 2) == '//')
-			$url = 'http:' . $url;
-		else
-			if (substr($url, 0, 1) == '/') $url = 'http:/' . $url;
+		if (substr($url, 0, 2) == '//') $url = 'http:' . $url;
+		elseif (substr($url, 0, 1) == '/') $url = 'http:/' . $url;
 
 		if ($this->isLocalDomain($url, $subdomain))
 		{
@@ -210,9 +204,10 @@ class Web extends Service
 			$responseContent['type'] = 'minimal';
 		}
 
-		$response->createFromTemplate("{$responseContent['type']}.tpl", $responseContent, (isset($responseContent['images']) ? $responseContent['images'] : array()), (isset($responseContent['attachments']) ? $responseContent['attachments'] : array()));
-
-
+		$template = "{$responseContent['type']}.tpl";
+		$images = isset($responseContent['images']) ? $responseContent['images'] : array();
+		$attachments = isset($responseContent['attachments']) ? $responseContent['attachments'] : array();
+		$response->createFromTemplate($template, $responseContent, $images, $attachments);
 		return $response;
 	}
 
@@ -231,7 +226,6 @@ class Web extends Service
 		$this->www_root = $di->get('path')['root'];
 
 		// Load libs
-
 		$mod_sockets = extension_loaded('sockets');
 		if (! $mod_sockets && function_exists('dl') && is_callable('dl')) {
 			$prefix = (PHP_SHLIB_SUFFIX == 'dll') ? 'php_' : '';
@@ -374,22 +368,19 @@ class Web extends Service
 
 		$images_attach = array();
 
-		if (substr($url, 0, 2) == '//')
-			$url = 'http:' . $url;
-		else
-			if (substr($url, 0, 1) == '/') $url = 'http:/' . $url;
+		if (substr($url, 0, 2) == '//') $url = 'http:' . $url;
+		elseif (substr($url, 0, 1) == '/') $url = 'http:/' . $url;
 
 		try {
 			// Create http client
 			$http_client = new GuzzleHttp\Client(array(
 					'cookies' => true,
 					'defaults' => array(
-						'verify' => false
-					)
+					'verify' => false
+				)
 			));
 
 			$http_client->setDefaultOption('config/curl/' . CURLOPT_SSL_VERIFYPEER, false);
-
 		} catch (Exception $e) {
 			return false;
 		}
@@ -403,8 +394,7 @@ class Web extends Service
 				if (! isset($arr2[1])) $arr2[1] = '';
 				$post[$arr2[0]] = $arr2[1];
 			}
-		} else
-			$post = array();
+		} else $post = array();
 
 		$cookies = false;
 		try {
@@ -419,7 +409,7 @@ class Web extends Service
 
 		// Set user agent
 		$options['headers'] = array(
-				'user-agent' => $this->config[$agent . '_user_agent']
+			'user-agent' => $this->config[$agent . '_user_agent']
 		);
 
 		// Sending POST/GET data
@@ -460,13 +450,13 @@ class Web extends Service
 
 				// save the image in the array for the template
 				$images = array(
-						$filePath
+					$filePath
 				);
 
 				return array(
-						'title' => 'Imagen en la web',
-						'type' => 'image',
-						'images' => $images
+					'title' => 'Imagen en la web',
+					'type' => 'image',
+					'images' => $images
 				);
 			}
 
@@ -476,13 +466,11 @@ class Web extends Service
 
 				if ($result !== false) {
 					return array(
-							'title' => 'Canal de noticias',
-							'type' => 'rss',
-							'results' => $result
+						'title' => 'Canal de noticias',
+						'type' => 'rss',
+						'results' => $result
 					);
 				}
-
-				// else: is a simple XML
 			}
 
 			// attach other files
@@ -492,21 +480,18 @@ class Web extends Service
 
 				if ($size / 1024 > $this->config['max_attachment_size']) {
 					return array(
-							'title' => 'Archivo demasiado grande',
-							'type' => 'ftp_bigfile',
-							'size' => $size,
-							'images' => array(),
-							'attachments' => array()
+						'title' => 'Archivo demasiado grande',
+						'type' => 'ftp_bigfile',
+						'size' => $size,
+						'images' => array(),
+						'attachments' => array()
 					);
 				}
 
 				$fname = $this->getTempDir() . "/files/" . md5($url);
-
-				if (file_exists($fname))
-					$content = file_get_contents($fname);
+				if (file_exists($fname)) $content = file_get_contents($fname);
 				else {
 					$content = $http_response->getBody();
-
 					file_put_contents($fname, $content);
 				}
 
@@ -518,7 +503,6 @@ class Web extends Service
 				$r = $zip->open($fname . ".zip", file_exists($fname . ".zip") ? ZipArchive::OVERWRITE : ZipArchive::CREATE);
 
 				if ($r !== false) {
-
 					$f = explode("/", $url);
 					$f = $f[count($f) - 1];
 
@@ -530,14 +514,12 @@ class Web extends Service
 				}
 
 				return array(
-						'title' => 'Archivo descargado de la web',
-						'type' => 'http_file',
-						'size' => number_format(filesize($finalname) / 1024, 0),
-						'zipped' => $zipped,
-						'images' => array(),
-						'attachments' => array(
-								$finalname
-						)
+					'title' => 'Archivo descargado de la web',
+					'type' => 'http_file',
+					'size' => number_format(filesize($finalname) / 1024, 0),
+					'zipped' => $zipped,
+					'images' => array(),
+					'attachments' => array($finalname)
 				);
 			}
 		}
@@ -559,12 +541,9 @@ class Web extends Service
 		$body = ForceUTF8\Encoding::toUTF8($body);
 
 		$tidy = new tidy();
-		$body = $tidy->repairString($body, array(
-				'output-xhtml' => true
-		), 'utf8');
+		$body = $tidy->repairString($body, array('output-xhtml' => true), 'utf8');
 
 		$doc = new DOMDocument();
-
 		@$doc->loadHTML($body);
 
 		// Getting BASE of URLs (base tag)
@@ -572,15 +551,12 @@ class Web extends Service
 		if ($base->length > 0) $this->base = $base->item(0)->getAttribute('href');
 
 		// Get the page's title
-
 		$title = $doc->getElementsByTagName('title');
 
-		if ($title->length > 0)
-			$title = $title->item(0)->nodeValue;
-		else
-			$title = $url;
+		if ($title->length > 0) $title = $title->item(0)->nodeValue;
+		else $title = $url;
 
-			// Convert links to mailto
+		// Convert links to mailto
 		$links = $doc->getElementsByTagName('a');
 
 		if ($links->length > 0) {
@@ -604,7 +580,6 @@ class Web extends Service
 		$in_the_end = array();
 
 		// Parsing forms
-
 		$forms = $doc->getElementsByTagName('form');
 		if ($forms->length > 0) {
 			foreach ($forms as $form) {
@@ -645,11 +620,7 @@ class Web extends Service
 		}
 
 		// Remove some tags
-		$tags = array(
-				'script',
-				'style',
-				'noscript'
-		);
+		$tags = array('script', 'style', 'noscript');
 
 		foreach ($tags as $tag) {
 			$elements = $doc->getElementsByTagName($tag);
@@ -688,7 +659,6 @@ class Web extends Service
 		}
 
 		// Replace/remove childs
-
 		foreach ($replace as $rep) {
 			try {
 				if (is_null($rep['newnode']))
@@ -701,13 +671,11 @@ class Web extends Service
 		}
 
 		$replace = array();
-
 		$body = $doc->saveHTML();
 
 		// Set style to each element in DOM, based on CSS stylesheets
 
 		$css = ForceUTF8\Encoding::toUTF8($css);
-
 		$emo = new Pelago\Emogrifier($body, $css);
 		$emo->disableInvisibleNodeRemoval();
 
@@ -716,19 +684,15 @@ class Web extends Service
 		} catch (Exception $e) {}
 
 		@$doc->loadHTML($body);
-
 		$nodeBody = $doc->getElementsByTagName('body');
-
-		$styleBody = @$nodeBody[0]->getAttribute('style');
+		$styleBody = $nodeBody->length ? @$nodeBody[0]->getAttribute('style') : "";
 		$styleBody = $this->fixStyle($styleBody);
 		$styleBody = str_replace('"', "'", $styleBody);
 
 		$tags_to_fix = explode(' ', 'a p label div pre h1 h2 h3 h4 h5 button i b u li ol ul fieldset small legend form input span button nav table tr th td thead');
 
 		foreach ($tags_to_fix as $tagname) {
-			if (array_search($tagname, array(
-					'input'
-			)) !== false) continue;
+			if (array_search($tagname, array('input')) !== false) continue;
 
 			$tags = $doc->getElementsByTagName($tagname);
 			if ($tags->length > 0) {
@@ -743,8 +707,8 @@ class Web extends Service
 				}
 			}
 		}
-		// Fixing PRE
 
+		// Fixing PRE
 		$pres = $doc->getElementsByTagName('pre');
 
 		if ($pres->length > 0) {
@@ -769,7 +733,6 @@ class Web extends Service
 		}
 
 		// Fixing styles
-
 		foreach ($tags_to_fix as $tag) {
 
 			$links = $doc->getElementsByTagName($tag);
@@ -785,7 +748,6 @@ class Web extends Service
 		}
 
 		// Convert image tags to NAVEGAR links
-
 		$style_navegar_links = 'margin:10px; background:#5EBB47;color:#FFFFFE;padding:5px;max-width:300px;max-height:300px;border: none; line-height: 2; text-decoration:none;';
 		$stroke = '#5dbd00';
 		$fill = '#5EBB47';
@@ -830,7 +792,6 @@ class Web extends Service
 				}
 				else
 				{
-
 					$node = $doc->createElement('a', '{' . $id . '}');
 					// $node->setAttribute('style', (! is_null($style) ? $style :
 					// "") . $style_navegar_links . (! is_null($width) ?
@@ -864,7 +825,6 @@ class Web extends Service
 		}
 
 		// Convert IFRAMES to NAVEGAR links
-
 		$iframes = $doc->getElementsByTagName('iframe');
 
 		if ($iframes->length > 0) {
