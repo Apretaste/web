@@ -2,8 +2,8 @@
 <p align="justify">Este servicio te permite <b>buscar en la internet</b>, adem&aacute;s de <b>visitar paginas webs</b> e incluso <b>publicar sus propios sitios webs</b> mediante el correo electr&oacute;nico.</p>
 
 <center>
-	{button icon="&#9729;" size="small" href="WEB" caption="Ver p&aacute;gina Web" body="Escriba una direccion web en el asunto, despues de la palabra WEB, por ejemplo: WEB apretaste.com" desc="Escriba una direccion web, por ejemplo: WEB apretaste.com" popup="true"}
-	{button icon="&#8494;" size="small" href="WEB" caption="Buscar en internet" body="Escriba una palabra o frase en el asunto, despues de donde dice WEB, por ejemplo: WEB comida cubana" desc="Escriba una palabra o frase, por ejemplo: WEB comida cubana" popup="true"}
+	{button icon="&#9729;" size="small" href="WEB" caption="Ver p&aacute;gina Web" body="Escriba una direccion web en el asunto, despues de la palabra WEB, por ejemplo: WEB apretaste.com" desc="Escriba una direccion web, por ejemplo: apretaste.com" popup="true"}
+	{button icon="&#8494;" size="small" href="WEB" caption="Buscar en internet" body="Escriba una palabra o frase en el asunto, despues de donde dice WEB, por ejemplo: WEB comida cubana" desc="Escriba una palabra o frase, por ejemplo: comida cubana" popup="true"}
 </center>
 
 {if $sites !== false}

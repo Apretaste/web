@@ -27,7 +27,7 @@ class Web extends Service
 			// create response
 			$response = new Response();
 			$response->setResponseSubject("Navegar en Internet");
-			$response->createFromTemplate("welcome.tpl", array('visits' => $result, 'sites' => $sites));
+			$response->createFromTemplate("home.tpl", array('visits' => $result, 'sites' => $sites));
 			return $response;
 		}
 
