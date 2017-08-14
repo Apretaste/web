@@ -1870,26 +1870,4 @@ class Web extends Service
 		if ( ! (substr($uri, 0, 4) == 'http')) $uri = "http://$uri"; // force http
 		return filter_var($uri, FILTER_VALIDATE_URL);
 	}
-
-	/**
-	 * Save visit for future stats
-	 *
-	 * @param string $url
-	 */
-	private function saveVisit($url)
-	{
-		try {
-			$site = parse_url($url, PHP_URL_HOST);
-			if ($site === false) $site = $url;
-			if ( ! empty(trim($site))) return false;
-
-			$db = new Connection();
-			$r = $db->query("SELECT * FROM _navegar_visits WHERE site = '$site';");
-			if (empty($r)) $sql = "INSERT INTO _navegar_visits (site) VALUES ('$site');";
-			else $sql = "UPDATE _navegar_visits SET usage_count = usage_count + 1, last_usage = CURRENT_TIMESTAMP WHERE site = '$site';";
-			$db->query($sql);
-
-			return true;
-		} catch (Exception $e) { return false; }
-	}
 }
