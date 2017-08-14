@@ -503,7 +503,7 @@ class Web extends Service
 				$fname = $this->getTempDir() . "/files/" . md5($url);
 
 				if (file_exists($fname))
-					$content = file_get_contents($fname);
+					$content = @file_get_contents($fname);
 				else {
 					$content = $http_response->getBody();
 
@@ -522,7 +522,7 @@ class Web extends Service
 					$f = explode("/", $url);
 					$f = $f[count($f) - 1];
 
-					$zip->addFromString($f, file_get_contents($fname));
+					$zip->addFromString($f, @file_get_contents($fname));
 					$zip->close();
 
 					$finalname = $fname . '.zip';
@@ -980,7 +980,7 @@ class Web extends Service
 		$tempdir = $this->getTempDir();
 		$fname = $tempdir . "/cookies/$email-" . md5($host);
 		if (file_exists($fname)) {
-			$content = file_get_contents($fname);
+			$content = @file_get_contents($fname);
 			return unserialize($content);
 		}
 		return false;
@@ -1027,7 +1027,7 @@ class Web extends Service
 		$cacheFile = $this->getTempDir() . "/searchcache/$source-" . md5($query);
 
 		if (file_exists($cacheFile) && time() - filemtime($cacheFile) > $this->config['cache_life_time']) {
-			$content = file_get_contents($cacheFile);
+			$content = @file_get_contents($cacheFile);
 		} else {
 			$config = $this->config['search-api-faroo'];
 
@@ -1407,7 +1407,7 @@ class Web extends Service
 								$f = explode("/", $url);
 								$f = $f[count($f) - 1];
 
-								$zip->addFromString($f, file_get_contents($local_file));
+								$zip->addFromString($f, @file_get_contents($local_file));
 								$zip->close();
 
 								$finalname = $local_file . '.zip';
@@ -2059,7 +2059,7 @@ class Web extends Service
 						$findex = $www_root."{$site->domain}/index.html";
 						if (file_exists($findex))
 						{
-							$summary = file_get_contents($findex);
+							$summary = @file_get_contents($findex);
 							$summary = strip_tags($summary);
 							$summary = substr($summary, 0, 200) . "...";
 						}
