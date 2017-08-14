@@ -1,24 +1,7 @@
 <?php
 
-/**
- * Apretaste
- *
- * Web service
- *
- * @author kuma (kumahavana@gmail.com)
- * @version 2.0 (fusion of WEB+NAVEGAR+GOOGLE)
- */
-use Goutte\Client;
-use ForceUTF8\Encoding;
-use GuzzleHttp\Exception\ConnectException;
-
 class Web extends Service
 {
-	private $mail_to = null;
-	private $config = null;
-	private $www_root = null;
-	private $base = null;
-
 	/**
 	 * Function executed when the service is called
 	 *
@@ -27,290 +10,70 @@ class Web extends Service
 	 */
 	public function _main (Request $request, $agent = 'default')
 	{
-		set_time_limit(600);
-
-		$this->prepare($request);
-
-		$request->query = trim($request->query);
-
-		// Welcome message when query is empty
-		if ($request->query == '') {
-			$response = new Response();
-			$response->setResponseSubject("Navegar en Internet");
-
-			$db = new Connection();
-
+		//
+		// show welcome message when query is empty
+		//
+		if (empty($request->query))
+		{
 			// get visits
-			$sql = "SELECT * FROM _navegar_visits WHERE site is not null and site <> '' ORDER BY usage_count DESC LIMIT 10;";
-
-			$result = $db->deepQuery($sql);
-			if (! isset($result[0])) $result = false;
+			$db = new Connection();
+			$result = $db->query("SELECT * FROM _navegar_visits WHERE site is not null and site <> '' ORDER BY usage_count DESC LIMIT 10;");
+			if (empty($result[0])) $result = false;
 
 			// get internal websites
-			$sql = "SELECT * FROM _web_sites order by inserted desc LIMIT 10;";
-			$sites = $db->deepQuery($sql);
+			$sites = $db->query("SELECT domain FROM _web_sites order by inserted desc LIMIT 10;");
+			if (empty($sites[0])) $sites = false;
 
-			if ( ! isset($sites[0]))
-				$sites = false;
-
-			if (is_array($sites))
-				foreach($sites as $k=>$site)
-					if (trim($site->title)==='')
-						$sites[$k]->title = $site->domain . ".apretaste.com";
-
-			$response->createFromTemplate("welcome.tpl", array(
-					'max_attachment_size' => $this->config['max_attachment_size'],
-					'visits' => $result,
-					'sites' => $sites
-			));
-
-			return $response;
-		}
-
-		// If $argument is not an URL, then search on the web
-		if (! $this->isUrl($request->query)) {
-			return $this->searchResponse($request, 'web');
-		}
-
-		// Force HTTP in malformed URLs
-		if (substr($request->query, 0, 2) == '//') {
-			$request->query = 'http:' . $request->query;
-		} else
-			if (substr($request->query, 0, 1) == '/') {
-				$request->query = 'http:/' . $request->query;
-			}
-
-		// Detecting FTP access
-		$scheme = strtolower(parse_url($request->query, PHP_URL_SCHEME));
-
-		if ($scheme == 'ftp') {
-			$ftp_result = $this->getFTP($request->query);
-
-			if ($ftp_result == false) {
-				$response = new Response();
-				$response->setResponseSubject("No se pudo acceder al servidor FTP");
-				$response->createFromTemplate("ftp_error.tpl", array(
-						"url" => $request->query
-				));
-				return $response;
-			}
-
-			switch ($ftp_result['type']) {
-				case 'dir':
-					$response = new Response();
-					$response->setResponseSubject("Accediendo al servidor de archivos");
-					$response->createFromTemplate("ftp.tpl",
-							array(
-									"url" => $request->query,
-									"contents" => $ftp_result['contents'],
-									"base_url" => $request->query
-							));
-					return $response;
-
-				case 'file':
-					$response = new Response();
-					$response->setResponseSubject("Archivo descargado del servidor FTP");
-					$response->createFromTemplate("ftp_file.tpl",
-							array(
-									"url" => $request->query,
-									"size" => $ftp_result['size'],
-									"zipped" => $ftp_result['zipped']
-							), array(), array(
-									$ftp_result['filepath']
-							));
-					return $response;
-
-				case 'file_fail':
-					$response = new Response();
-					$response->setResponseSubject("No se pudo descargar el archivo del FTP");
-					$response->createFromTemplate("ftp_file_fail.tpl", array(
-							"url" => $request->query,
-							"size" => $ftp_result['size']
-					));
-					return $response;
-
-				case 'bigfile':
-					$response = new Response();
-					$response->setResponseSubject("Archivo demasiado grande");
-					$response->createFromTemplate("ftp_bigfile.tpl", array(
-							"url" => $request->query,
-							"size" => number_format($ftp_result['size'] / 1024, 0, '.', '')
-					));
-					return $response;
-			}
-		}
-
-		// Asume HTTP access
-
-		// Preparing POST data
-		$paramsbody = trim($request->body);
-		$p = strpos($paramsbody, "\n");
-
-		if ($p !== false) $paramsbody = substr($paramsbody, $p);
-
-		if (strpos($paramsbody, '=') === false)
-			$paramsbody = false;
-		else
-			$paramsbody = trim($paramsbody);
-
-			// Default method is GET
-		$method = 'GET';
-
-		$argument = $request->query;
-
-		// Analyzing params in body
-		if ($paramsbody !== false) {
-			if (stripos($paramsbody, 'apretaste-form-method=post') != false) {
-				$method = 'POST';
-			} else
-				$argument = $request->query . '?' . $paramsbody;
-		}
-
-		// Retrieve the page/image/file
-		$url = $argument;
-		$page = $this->getHTTP($argument, $method, $paramsbody, $agent);
-
-		if ($page === false) {
-			// Return invalid page
+			// create response
 			$response = new Response();
-			$response->setResponseSubject("No se pudo acceder");
-			$response->createFromTemplate('http_error.tpl', array(
-					'url' => $url
-			));
+			$response->setResponseSubject("Navegar en Internet");
+			$response->createFromTemplate("home.tpl", array('visits' => $result, 'sites' => $sites));
 			return $response;
 		}
 
-		// Save stats
-		$this->saveVisit($argument);
+		// fix broken URLs
+		if (substr($request->query, 0, 2) == '//') $request->query = 'http:' . $request->query;
+		elseif (substr($request->query, 0, 1) == '/')  $request->query = 'http:/' . $request->query;
 
-		// Create response
-		$responseContent = $page;
-		$responseContent['url'] = $argument;
-
-		if (! isset($responseContent['type'])) $responseContent['type'] = 'basic';
-
-		$response = new Response();
-		$response->setResponseSubject(empty($responseContent['title']) ? "Navegando con Apretaste" : $responseContent['title']);
-
-		// set minimal layout
-		$subdomain = null;
-		$url = str_replace("///", "/", $url);
-		$url = str_replace("//", "/", $url);
-		$url = str_replace("http:/", "http://", $url);
-		$url = str_replace("https:/", "https://", $url);
-
-		if (substr($url, 0, 2) == '//')
-			$url = 'http:' . $url;
-		else
-			if (substr($url, 0, 1) == '/') $url = 'http:/' . $url;
-
-		if ($this->isLocalDomain($url, $subdomain))
+		//
+		// if the argument is a URL, open it
+		//
+		$url = $this->isValidUrl($request->query);
+		if($url)
 		{
+			set_time_limit(900);
+
+			// get the HTML from the URL
+			$html = $this->getWeb($url);
+
+			// save visit in the database
+			$this->saveVisit($url);
+
+			// check if the response is for app or email
+			$di = \Phalcon\DI\FactoryDefault::getDefault();
+			$byEmail = $di->get('environment') != "app";
+
+			$response = new Response();
+			$response->setResponseSubject("Su web {$request->query}");
 			$response->setEmailLayout('email_minimal.tpl');
-			$responseContent['type'] = 'minimal';
+			$response->createFromTemplate("basic.tpl", array("body"=>$html, "url"=>$url, "byEmail"=>$byEmail));
+			return $response;
 		}
 
-		$response->createFromTemplate("{$responseContent['type']}.tpl", $responseContent, (isset($responseContent['images']) ? $responseContent['images'] : array()), (isset($responseContent['attachments']) ? $responseContent['attachments'] : array()));
-
-
-		return $response;
-	}
-
-	/**
-	 * Prepare service
-	 *
-	 * @param Request $request
-	 */
-	private function prepare ($request)
-	{
-		// Load configuration
-		$this->loadServiceConfig();
-
-		// Get path to the www folder
+		//
+		// else search the web using Google
+		//
+		// include the service
 		$di = \Phalcon\DI\FactoryDefault::getDefault();
-		$this->www_root = $di->get('path')['root'];
+		$wwwroot = $di->get('path')['root'];
+		require_once "$wwwroot/services/google/service.php";
 
-		// Load libs
-
-		$mod_sockets = extension_loaded('sockets');
-		if (! $mod_sockets && function_exists('dl') && is_callable('dl')) {
-			$prefix = (PHP_SHLIB_SUFFIX == 'dll') ? 'php_' : '';
-			@dl($prefix . 'sockets.' . PHP_SHLIB_SUFFIX);
-			$mod_sockets = extension_loaded('sockets');
-		}
-
-		require_once $this->pathToService . '/lib/Emogrifier.php';
-		require_once $this->pathToService . '/lib/PemFTP/ftp_class.php';
-		require_once $this->pathToService . '/lib/PemFTP/ftp_class_pure.php';
-		require_once $this->pathToService . "/lib/CSSParser/CSSParser.php";
-		require_once $this->pathToService . "/lib/Encoding.php";
-	}
-
-	/**
-	 * Common functionality for search
-	 *
-	 * @param Request $request
-	 * @param string $source
-	 * @return Response
-	 */
-	private function searchResponse ($request, $source = 'web')
-	{
-		// load libs
-		require_once $this->pathToService."/lib/CustomSearch.php";
-
-		// empty results by default
-		$results = array();
-		$response = new Response();
-		$response->setResponseSubject("Google: " . $request->query);
-		$responseContent = array('query' => $request->query);
-		$template = 'results.tpl';
-
-		if ($source == 'web')
-		{
-			// STEP 1: SEARCH WITH GOOOOOOGLE
-
-			// Initialize the search class
-			$cs = new Fogg\Google\CustomSearch\CustomSearch();
-
-			// Perform a simple search
-			$gresults = $cs->simpleSearch($request->query);
-
-			if (isset($gresults->items))
-				foreach ($gresults->items as $gresult){
-					$results[] =  array(
-						"title" => $gresult->htmlTitle,
-						"url" => $gresult->link,
-						"note" => $gresult->htmlSnippet
-					);
-			}
-		}
-
-		// if not results with google, then ...
-		if (empty($results)) {
-
-			// STEP 2: SEARCH WITH FAROOOOO
-			if (strlen($request->query) >= $this->config['min_search_query_len'])
-				$results = $this->search($request->query, $source);
-
-			$newresults = array();
-
-			foreach($results as $k => $v)
-				$newresults[] =  array(
-					"title" => $v->title,
-					"url" => $v->url,
-					"note" => $v->kwic
-				);
-
-			$results = $newresults;
-		}
-
-		$responseContent['responses'] = $results;
-
-		// No results?
-		if (empty($results))
-			$template = 'no_results.tpl';
-
-		$response->createFromTemplate($template, $responseContent);
+		// call google and get the response
+		$google = new Google();
+		$google->utils = new Utils();
+		$google->pathToService = "$wwwroot/services/google/";
+		$response = $google->_main($request);
+		$response->template = "google.tpl";
 		return $response;
 	}
 
@@ -1779,151 +1542,8 @@ class Web extends Service
 	 */
 	public function _pdf(Request $request)
 	{
-		return $this->createPDFanfgetResponse($request->query, true);
-	}
-
-	/**
-	 * Publish a web page online under apretaste.com domain
-	 *
-	 * @param Request $request
-	 * @return Response
-	 */
-	public function _publicar(Request $request)
-	{
-		$connection = new Connection();
-		$www_root = $this->pathToService."/../../public/w/";
-		$domain = trim($request->query);
-		$title = '';
-		$p = strpos($domain, ' ');
-		if ($p !== false)
-		{
-			$domain = substr($domain,0,$p);
-			$title = trim(substr($domain,$p));
-		}
-
-		$domain = $this->utils->clearStr($domain);
-		$domain = strtolower($domain); // super important!
-
-		$owner = $request->email;
-
-		$websites = $connection->deepQuery("SELECT * FROM _web_sites WHERE owner = '$owner';");
-
-		if (!is_array($websites))
-			$websites = array();
-
-		if (!file_exists($www_root))
-			mkdir($www_root);
-
-		$exists = false;
-		if (file_exists($www_root."$domain"))
-		{
-			$exists = true;
-			$sql = "SELECT * FROM _web_sites WHERE domain ='$domain';";
-
-			$r = $connection->deepQuery($sql);
-
-			if (isset($r[0]->owner)) if ($r[0]->owner !== $owner)
-			{
-				$response = new Response();
-				$response->setResponseSubject("Web: No se pudo publicar la web en $domain");
-				$response->createFromText("Ya existe una web llamada $domain en Apretaste! y t&uacute; no eres su due&ntilde;o. Rectifica que est&eacute;s escribiendo bien el nombre que deseas o utiliza otro nombre.");
-				return $response;
-			}
-
-		}
-		else
-		{
-			mkdir($www_root."$domain");
-		}
-
-		$files_changed = [];
-
-		$num_files = 0;
-		foreach($request->attachments as $at)
-		{
-			if (isset($at->type))
-			{
-				if (strpos("jpg,jpeg,image/jpg,image/jpeg,image/png,png,image/gif,gif,text/plain,text,html,text/html,text/css,application/javascript,otf,application/x-font-ttf,image/svg+xml,application/vnd.ms-fontobject,application/x-font-woff,application/x-font-woff2,application/octet-stream",$at->type)!==false)
-				{
-					if (isset($at->name))
-					{
-						$num_files++;
-						$filename = $at->name;
-						$filename = str_ireplace(".php", "", $filename);
-						$files_changed[] = $filename;
-						$filePath = $www_root."$domain/$filename";
-						if (file_exists($filePath))
-							unlink($filePath);
-						file_put_contents($filePath, base64_decode($at->content));
-					}
-				}
-			}
-		}
-
-		$index_default = "<h1>$domain</h1>";
-
-		if (!file_exists($www_root."$domain/index.html"))
-		{
-			file_put_contents($www_root."$domain/index.html", $index_default);
-		}
-
-		if ($exists)
-		{
-			$sql = "UPDATE _web_sites SET title = '$title' WHERE domain = '$domain';";
-		}
-		else
-		{
-			$sql = "INSERT IGNORE INTO _web_sites (domain, title, owner) VALUES ('$domain', '$title','$owner');";
-		}
-
-		$connection->deepQuery($sql);
-
-		$response = new Response();
-		$response->setResponseSubject("Su web ha sido publicada en Apretaste!");
-		$response->createFromTemplate("public.tpl", array(
-			'domain' => $domain,
-			'title' => $title,
-			'num_files' => $num_files,
-			'files_changed' => $files_changed
-		));
-
-		// notify to their friends
-		$person = $this->utils->getPerson($request->email);
-		$r = $connection->deepQuery("SELECT * FROM relations WHERE user2 = '{$request->email}' AND (type='follow' OR type='friend') AND confirmed = 1;");
-
-		$friends = array();
-
-		if (is_array($r))
-			foreach($r as $user)
-				$friends[] = $user->user1;
-
-		$r = $connection->deepQuery("SELECT * FROM relations WHERE user1='{$request->email}' AND type='friend' AND confirmed = 1;");
-
-		if (is_array($r))
-			foreach($r as $user)
-				$friends[] = $user->user2;
-
-		foreach($friends as $f)
-			$this->utils->addNotification($f, 'WEB PUBLICAR', "@{$person->username} ha publicado una web en Apretaste", 'WEB http://'.$domain.'.apretaste.com');
-
-		// put in pizarra
-		$text = ($exists ? "He actualizado mi" : "He publicado un"). " sitio web en Apretaste. Pueden visitarlo usando el serivicio <b>WEB http://$domain.apretaste.com</b>";
-		$connection->deepQuery("INSERT INTO _pizarra_notes (email, text) VALUES ('{$request->email}', '$text')");
-
-		return $response;
-	}
-
-	/**
-	 * Does all the dirty job and returns the Response object
-	 *
-	 * @author salvipascual
-	 * @param String $url
-	 * @param Boolean $images: true to include images on the attached PDF
-	 * @return Response
-	 **/
-	private function createPDFanfgetResponse($url, $images=true)
-	{
-		// do not allow empty pages
+		// do not allow empty pages\
+		$url = $request->query;
 		if(empty($url))
 		{
 			$response = new Response();
@@ -1955,8 +1575,7 @@ class Web extends Service
 
 		// download the website as pdf
 		$file = "$www_root/temp/" . $this->utils->generateRandomHash() . ".pdf";
-		$show_image = $images ? "--images" : "--no-images";
-		$command = " -lq --no-background $show_image --disable-external-links --disable-forms --disable-javascript --viewport-size 1600x900 $url $file";
+		$command = " -lq --no-background --images --disable-external-links --disable-forms --disable-javascript --viewport-size 1600x900 $url $file";
 		shell_exec("/usr/local/bin/wkhtmltopdf $command");
 
 		// error if the web could not be downloaded
@@ -1974,48 +1593,10 @@ class Web extends Service
 		}
 
 		// respond to the user with the pdf of website attached
-		$content = array("url"=>$url, "images"=>$images);
 		$response = new Response();
 		$response->setResponseSubject("Aqui esta su website");
-		$response->createFromTemplate("web_pdf.tpl", $content, array(), array($file));
+		$response->createFromTemplate("pdf.tpl", array("url"=>$url), array(), array($file));
 		return $response;
-	}
-
-	/**
-	 * Return TRUE if url is in local domain
-	 *
-	 * @param string $url
-	 * @return boolean
-	 */
-	private function isLocalDomain($url, &$subdomain)
-	{
-		$url = str_ireplace(array("http://", "https://", "ftp://"), "", $url);
-		$url = str_ireplace("//","/",$url);
-
-		if ($url[0] == '/')
-			$url = substr($url, 1);
-
-		$url = explode("/", $url);
-		$url = $url[0];
-
-		$d = 'apretaste.com';
-
-		$url = strtolower($url);
-		$p = strpos($url,':');
-
-		if ($p !== false)
-			$url = substr($url, 0, $p);
-
-		$l = strlen($d);
-		$r = substr($url, 0 - $l) == $d && $l < strlen($url);
-
-		if ($r) {
-			$subdomain = explode(".", $url);
-			$subdomain = $subdomain[0];
-			return true;
-		}
-
-		return false;
 	}
 
 	/**
@@ -2035,10 +1616,10 @@ class Web extends Service
 		$offset -= 1;
 		$offset *= $limit;
 
-		$total = $connection->deepQuery("SELECT count(domain) as t FROM _web_sites;");
+		$total = $connection->query("SELECT count(domain) as t FROM _web_sites;");
 		$total = $total[0]->t;
 
-		$sites = $connection->deepQuery("SELECT *, (SELECT usage_count FROM _navegar_visits WHERE site = concat(_web_sites.domain, '.apretaste.com')) as popularity FROM _web_sites order by popularity desc LIMIT $offset, $limit;");
+		$sites = $connection->query("SELECT *, (SELECT usage_count FROM _navegar_visits WHERE site = concat(_web_sites.domain, '.apretaste.com')) as popularity FROM _web_sites order by popularity desc LIMIT $offset, $limit;");
 		$offsets = intval($total / $limit) + 1;
 
 		if ($offsets < 2) $offsets = 0;
@@ -2066,17 +1647,249 @@ class Web extends Service
 						$sites[$k]->summary = $summary;
 				}
 
-				$response->setResponseSubject("Directorio de paginas en Apretaste!");
-				$response->createFromTemplate('sites_list.tpl', array(
-					'sites' => $sites,
-					'pagging' => $pagging
-				));
-
+				$response->setResponseSubject("Directorio de paginas en Apretaste");
+				$response->createFromTemplate('sites.tpl', array('sites' => $sites, 'pagging' => $pagging));
 				return $response;
 			}
 
-		$response->setResponseSubject('No se econtraron paginas en Apretaste!');
-		$response->createFromText("No se econtraron p&aacute;ginas en Apretaste!");
+		$response->setResponseSubject('No se econtraron paginas en Apretaste');
+		$response->createFromText("No se econtraron p&aacute;ginas en Apretaste");
 		return $response;
+	}
+
+	/**
+	 * Publish a web page online under apretaste.com domain
+	 *
+	 * @param Request $request
+	 * @return Response
+	 */
+	public function _publicar(Request $request)
+	{
+		$connection = new Connection();
+		$www_root = $this->pathToService."/../../public/w/";
+		$domain = trim($request->query);
+		$title = '';
+
+		$p = strpos($domain, ' ');
+		if ($p !== false)
+		{
+			$domain = substr($domain,0,$p);
+			$title = trim(substr($domain,$p));
+		}
+
+		$domain = $this->utils->clearStr($domain);
+		$domain = strtolower($domain); // super important!
+
+		$owner = $request->email;
+		$websites = $connection->query("SELECT * FROM _web_sites WHERE owner = '$owner';");
+
+		if ( ! is_array($websites)) $websites = array();
+		if ( ! file_exists($www_root)) mkdir($www_root);
+
+		$exists = false;
+		if (file_exists($www_root."$domain"))
+		{
+			$exists = true;
+			$sql = "SELECT * FROM _web_sites WHERE domain ='$domain';";
+			$r = $connection->query($sql);
+
+			if (isset($r[0]->owner)) if ($r[0]->owner !== $owner)
+			{
+				$response = new Response();
+				$response->setResponseSubject("Web: No se pudo publicar la web en $domain");
+				$response->createFromText("Ya existe una web llamada $domain en Apretaste y t&uacute; no eres su due&ntilde;o. Rectifica que est&eacute;s escribiendo bien el nombre que deseas o utiliza otro nombre.");
+				return $response;
+			}
+		}
+		else
+		{
+			mkdir($www_root."$domain");
+		}
+
+		$files_changed = [];
+
+		$num_files = 0;
+		foreach($request->attachments as $at)
+		{
+			if (isset($at->type))
+			{
+				if (strpos("jpg,jpeg,image/jpg,image/jpeg,image/png,png,image/gif,gif,text/plain,text,html,text/html,text/css,application/javascript,otf,application/x-font-ttf,image/svg+xml,application/vnd.ms-fontobject,application/x-font-woff,application/x-font-woff2,application/octet-stream",$at->type)!==false)
+				{
+					if (isset($at->name))
+					{
+						$num_files++;
+						$filename = $at->name;
+						$filename = str_ireplace(".php", "", $filename);
+						$files_changed[] = $filename;
+						$filePath = $www_root."$domain/$filename";
+						if (file_exists($filePath)) unlink($filePath);
+						file_put_contents($filePath, base64_decode($at->content));
+					}
+				}
+			}
+		}
+
+		$index_default = "<h1>$domain</h1>";
+
+		if ( ! file_exists($www_root."$domain/index.html"))
+		{
+			file_put_contents($www_root."$domain/index.html", $index_default);
+		}
+
+		if ($exists)
+		{
+			$sql = "UPDATE _web_sites SET title = '$title' WHERE domain = '$domain';";
+		}
+		else
+		{
+			$sql = "INSERT IGNORE INTO _web_sites (domain, title, owner) VALUES ('$domain', '$title','$owner');";
+		}
+
+		$connection->query($sql);
+		$response = new Response();
+		$response->setResponseSubject("Su web ha sido publicada en Apretaste");
+		$response->createFromTemplate("public.tpl", array(
+			'domain' => $domain,
+			'title' => $title,
+			'num_files' => $num_files,
+			'files_changed' => $files_changed
+		));
+
+		// post in pizarra
+		$text = ($exists ? "He actualizado mi" : "He publicado un"). " sitio web en Apretaste. Pueden visitarlo en http://$domain.apretaste.com";
+		$connection->query("INSERT INTO _pizarra_notes (email, text) VALUES ('{$request->email}', '$text')");
+
+		return $response;
+	}
+
+	/*
+	 * Open a URL
+	 */
+	private function getWeb($url)
+	{
+		// get the contents of the URL
+		$html = file_get_contents($url);
+
+		// create DOM element
+		$dom = new DOMDocument;
+		@$dom->loadHTML($html);
+
+		// remove <meta> tags
+		while (($r = $dom->getElementsByTagName("meta")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+
+		// remove <script> tags
+		while (($r = $dom->getElementsByTagName("script")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+
+		// remove outside css
+		while (($r = $dom->getElementsByTagName("link")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+
+		// remove embebed css
+		while (($r = $dom->getElementsByTagName("style")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+
+		// remove iframes
+		while (($r = $dom->getElementsByTagName("iframe")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+
+		// remove forms and form elements
+		while (($r = $dom->getElementsByTagName("form")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+		while (($r = $dom->getElementsByTagName("input")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+		while (($r = $dom->getElementsByTagName("select")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+		while (($r = $dom->getElementsByTagName("textarea")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+
+		// remove all comments
+		$xpath = new DOMXPath($dom);
+		foreach ($xpath->query('//comment()') as $comment) {
+			$comment->parentNode->removeChild($comment);
+		}
+		$body = $xpath->query('//body')->item(0);
+		$dom->saveXml($body);
+
+		// remove <img> tags
+		while (($r = $dom->getElementsByTagName("img")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+
+		// replace <a> by mailto or onclick
+		foreach ($dom->getElementsByTagName('a') as $node)
+		{
+			// get place where the link points
+			$src = $node->getAttribute("href");
+
+			// replace inner links by their full vesion
+			if( ! $this->isValidUrl($src)) $src = "$url/$src";
+			str_replace("//", "/", $src);
+
+			// if it is working for the app, convert the links to onclick
+			$di = \Phalcon\DI\FactoryDefault::getDefault();
+			if($di->get('environment') == "app") {
+				$node->setAttribute('href', "");
+				$node->setAttribute('onclick', "apretaste.doaction('WEB $src', false, '', true);");
+			}
+			// else convert the links to mailto
+			else{
+				$apValidEmailAddress = $this->utils->getValidEmailAddress();
+				$node->setAttribute('href', "mailto:$apValidEmailAddress?subject= WEB $src");
+			}
+		}
+
+		// convert DOM back to HTML code
+		$html = $dom->saveHTML();
+
+		// remove inline css
+		preg_match_all('/ style.*?=.*?".*?"/', $html, $matches);
+		foreach ($matches[0] as $match) {
+			$html = str_replace($match, "", $html);
+		}
+
+		return $html;
+	}
+
+	/*
+	 * Check if URL is valid
+	 */
+	private function isValidUrl($uri)
+	{
+		if (strpos($uri, '.') == false) return false; // urls must contain a dot
+		if ( ! (substr($uri, 0, 4) == 'http')) $uri = "http://$uri"; // force http
+		return filter_var($uri, FILTER_VALIDATE_URL);
+	}
+
+	/**
+	 * Save visit for future stats
+	 *
+	 * @param string $url
+	 */
+	private function saveVisit($url)
+	{
+		try {
+			$site = parse_url($url, PHP_URL_HOST);
+			if ($site === false) $site = $url;
+			if ( ! empty(trim($site))) return false;
+
+			$db = new Connection();
+			$r = $db->query("SELECT * FROM _navegar_visits WHERE site = '$site';");
+			if (empty($r)) $sql = "INSERT INTO _navegar_visits (site) VALUES ('$site');";
+			else $sql = "UPDATE _navegar_visits SET usage_count = usage_count + 1, last_usage = CURRENT_TIMESTAMP WHERE site = '$site';";
+			$db->query($sql);
+
+			return true;
+		} catch (Exception $e) { return false; }
 	}
 }

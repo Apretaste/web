@@ -4,60 +4,59 @@
 		<alias>navegar</alias>
 		<alias>browse</alias>
 	</serviceAliases>
-	<serviceDescription><![CDATA[Buscar y navegar en Internet mediante el email]]></serviceDescription>
+	<serviceDescription>Buscar y navegar en Internet mediante el email</serviceDescription>
 	<creatorEmail>kumahavana@gmail.com</creatorEmail>
 	<serviceCategory>comunicaciones</serviceCategory>
 	<serviceUsage>
 		<![CDATA[
-			Este servicio le permitirá buscar y visitar direcciones en Internet mediante el email, dígase, 
-			sitios webs, descargar archivos pequeños, ver canales de noticias (RSS, Atom), acceder a 
-			servidores de archivo FTP, ver imágenes, entre otros. Los enlaces a otras direcciones en 
-			Internet podrá seguirlos haciendo clic en ellos cuando se le muestren y enviando los 
+			Este servicio le permitirá buscar y visitar direcciones en Internet mediante el email, dígase,
+			sitios webs, descargar archivos pequeños, ver canales de noticias (RSS, Atom), acceder a
+			servidores de archivo FTP, ver imágenes, entre otros. Los enlaces a otras direcciones en
+			Internet podrá seguirlos haciendo clic en ellos cuando se le muestren y enviando los
 			correos preparados con ese fin.
 
-			Las imágenes de los sitios webs se le mostrarán como enlaces para obtenerlas en un correo 
+			Las imágenes de los sitios webs se le mostrarán como enlaces para obtenerlas en un correo
 			aparte. Esas imágenes serán reducidas para que le puedan ser entregadas con facilidad.
-			
-			Los demás tipos de archivos que solicite le serán entregados como adjuntos, siempre y 
+
+			Los demás tipos de archivos que solicite le serán entregados como adjuntos, siempre y
 			cuando no excedan los 400 kilobytes después de comprimirlos en formato ZIP.
-			
+
 			Podrás interactuar con algunos formularios en la web y posiblemente mantener sesiones
-			activas en sitios en los cuales debes registrarte para poder visitarlos. En esta funcionalidad 
+			activas en sitios en los cuales debes registrarte para poder visitarlos. En esta funcionalidad
 			estamos trabajando para mejorarla.
-			
+
 			Cómo navegar?
-			
-			Para utilizar este servicio debe enviar un correo a Apretaste y en el asunto escribir 
+
+			Para utilizar este servicio debe enviar un correo a Apretaste y en el asunto escribir
 			NAVEGAR seguida de dos posibles datos:
-			
-			    una dirección en Internet, dígase un sitio web, canal de noticias, servidor de archivos, 
-			    imagen u otro archivo, por ejemplo:
-			        Para: apretaste@gmail.com
-			        Asunto: WEB http://revolico.com/computadoras
-			
-			    Apretaste accederá a ese sitio por usted y se lo traerá a su email para que pueda navegar 
-			    en él.
-			     
-			    una frase para buscar en Internet, por ejemplo:
-			        Para: apretaste@gmail.com
-			        Asunto: WEB cuba
-			
-			    Apretaste buscará en la web los sitios que hablen de "cuba".
-		
+
+				una dirección en Internet, dígase un sitio web, canal de noticias, servidor de archivos,
+				imagen u otro archivo, por ejemplo:
+					Para: apretaste@gmail.com
+					Asunto: WEB http://revolico.com/computadoras
+
+				Apretaste accederá a ese sitio por usted y se lo traerá a su email para que pueda navegar
+				en él.
+
+				una frase para buscar en Internet, por ejemplo:
+					Para: apretaste@gmail.com
+					Asunto: WEB cuba
+
+				Apretaste buscará en la web los sitios que hablen de "cuba".
+
 		Los subservicios
 
 		Actualmente este servicio contiene 3 subservicios:
-		
-		WEB MOVIL: Agregando la palabra MOVIL al principio podras navegar en internet identificándote 
-		como un dispositivo móvil. Esto es útil para obtener páginas en formato reducido, típico en estos 
+
+		WEB MOVIL: Agregando la palabra MOVIL al principio podras navegar en internet identificándote
+		como un dispositivo móvil. Esto es útil para obtener páginas en formato reducido, típico en estos
 		dispositivos.
-		
-		WEB NOTICIAS: Agregando la palabra NOTICIAS seguida de una frase de búsqueda al principio 
+
+		WEB NOTICIAS: Agregando la palabra NOTICIAS seguida de una frase de búsqueda al principio
 		podrás buscar noticias en internet.
-		
-		WEB PDF:  Agregando la palabra PDF seguida de la URL de una p&aacute;gina la obtendrás en 
-		formato PDF como adjunto del correo de respuesta. 
-				
+
+		WEB PDF:  Agregando la palabra PDF seguida de la URL de una p&aacute;gina la obtendrás en
+		formato PDF como adjunto del correo de respuesta.
 		]]>
 	</serviceUsage>
 </service>
