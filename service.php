@@ -440,7 +440,7 @@ class Web extends Service
 
 					$href = $this->getFullHref($style->getAttribute('href'), $url);
 
-					$r = @file_get_contents($href);
+					$r = $this->getUrl($href); //@file_get_contents($href);
 
 					if ($r !== false) {
 						$css .= $r;
@@ -802,7 +802,7 @@ class Web extends Service
 			$url .= "&src=" . $source;
 			$url .= "&i=false&f=json&key=" . $config['key'];
 
-			$content = @file_get_contents($url);
+			$content = $this->getUrl($url); //@file_get_contents($url);
 			if ($content != false)
 				file_put_contents($cacheFile, $content);
 			else
@@ -1768,7 +1768,7 @@ class Web extends Service
 	private function getWeb($url)
 	{
 		// get the contents of the URL
-		$html = file_get_contents($url);
+		$html = $this->getUrl($url); //file_get_contents($url);
 
 		// create DOM element
 		$dom = new DOMDocument;
@@ -1869,5 +1869,34 @@ class Web extends Service
 		if (strpos($uri, '.') == false) return false; // urls must contain a dot
 		if ( ! (substr($uri, 0, 4) == 'http')) $uri = "http://$uri"; // force http
 		return filter_var($uri, FILTER_VALIDATE_URL);
+	}
+	
+	private function getUrl($url)
+	{
+		$ch = curl_init();
+        
+		curl_setopt($ch, CURLOPT_URL, $url);
+		
+		$default_headers = [
+			"Cache-Control" => "max-age=0",
+			"Origin" => "{$url}",
+			"User-Agent" => "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36",
+			"Content-Type" => "application/x-www-form-urlencoded"
+		];
+
+		$hhs = [];
+		foreach ($default_headers as $key => $val)
+			$hhs[] = "$key: $val";
+
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $hhs);
+		
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		
+        $html = curl_exec($ch);
+
+		curl_close($ch);
+		
+		return $html;
 	}
 }
