@@ -1895,6 +1895,12 @@ class Web extends Service
 		
         $html = curl_exec($ch);
 
+		$info = curl_getinfo($ch);
+		
+		if ($info['http_code'] == 301)
+			if (isset($info['redirect_url']) && $info['redirect_url'] != $url)
+				return $this->getUrl($info['redirect_url']);
+		
 		curl_close($ch);
 		
 		return $html;
