@@ -548,6 +548,10 @@ class Web extends Service
 	
 	private function getUrl($url)
 	{
+	    $url = str_replace("//", "/", $url);
+	    $url = str_replace("http:/","http://", $url);
+        $url = str_replace("https:/","https://", $url);
+
 		$ch = curl_init();
         
 		curl_setopt($ch, CURLOPT_URL, $url);
