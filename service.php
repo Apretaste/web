@@ -26,6 +26,7 @@ class Web extends Service
 
 			// create response
 			$response = new Response();
+			$response->setCache("month");
 			$response->setResponseSubject("Navegar en Internet");
 			$response->createFromTemplate("home.tpl", array('visits' => $result, 'sites' => $sites));
 			return $response;
@@ -54,6 +55,7 @@ class Web extends Service
 			$byEmail = $di->get('environment') != "app";
 
 			$response = new Response();
+			$response->setCache("month");
 			$response->setResponseSubject("Su web {$request->query}");
 			$response->setEmailLayout('email_minimal.tpl');
 			$response->createFromTemplate("basic.tpl", array("body"=>$html, "url"=>$url, "byEmail"=>$byEmail));
@@ -74,10 +76,12 @@ class Web extends Service
 		$google->pathToService = "$wwwroot/services/google/";
 		$response = $google->_main($request);
 		$response->template = "google.tpl";
+		$response->setCache("month");
 		return $response;
 	}
 
 	/**
+	 *
 	 */
 	private function getTempDir ()
 	{
@@ -90,7 +94,6 @@ class Web extends Service
 
 		return "$www_root/temp/navegar";
 	}
-
 
 	/**
 	 * Return full HREF
@@ -208,7 +211,6 @@ class Web extends Service
 		} catch (Exception $e) {}
 	}
 
-
 	/**
 	 * Return web page has PDF
 	 *
@@ -303,29 +305,28 @@ class Web extends Service
 		for($i = 1; $i <= $offsets; $i++) $pagging[]= $i;
 
 		$response = new Response();
-
-		if (is_array($sites))
-			if (count($sites) > 0)
+		if (is_array($sites) && count($sites) > 0)
+		{
+			foreach($sites as $k=>$site)
 			{
-				foreach($sites as $k=>$site)
-				{
-					if (trim($site->title)==='')
-						$sites[$k]->title = $site->domain . ".apretaste.com";
-						$summary = '';
-						$findex = $www_root."{$site->domain}/index.html";
-						if (file_exists($findex))
-						{
-							$summary = @file_get_contents($findex);
-							$summary = strip_tags($summary);
-							$summary = substr($summary, 0, 200) . "...";
-						}
-						$sites[$k]->summary = $summary;
-				}
-
-				$response->setResponseSubject("Directorio de paginas en Apretaste");
-				$response->createFromTemplate('sites.tpl', array('sites' => $sites, 'pagging' => $pagging));
-				return $response;
+				if (trim($site->title)==='')
+					$sites[$k]->title = $site->domain . ".apretaste.com";
+					$summary = '';
+					$findex = $www_root."{$site->domain}/index.html";
+					if (file_exists($findex))
+					{
+						$summary = @file_get_contents($findex);
+						$summary = strip_tags($summary);
+						$summary = substr($summary, 0, 200) . "...";
+					}
+					$sites[$k]->summary = $summary;
 			}
+
+			$response->setCache("day");
+			$response->setResponseSubject("Directorio de paginas en Apretaste");
+			$response->createFromTemplate('sites.tpl', array('sites' => $sites, 'pagging' => $pagging));
+			return $response;
+		}
 
 		$response->setResponseSubject('No se econtraron paginas en Apretaste');
 		$response->createFromText("No se econtraron p&aacute;ginas en Apretaste");
@@ -545,7 +546,7 @@ class Web extends Service
 		if ( ! (substr($uri, 0, 4) == 'http')) $uri = "http://$uri"; // force http
 		return filter_var($uri, FILTER_VALIDATE_URL);
 	}
-	
+
 	private function getUrl($url)
 	{
 	    $url = str_replace("//", "/", $url);
@@ -553,9 +554,9 @@ class Web extends Service
         $url = str_replace("https:/","https://", $url);
 
 		$ch = curl_init();
-        
+
 		curl_setopt($ch, CURLOPT_URL, $url);
-		
+
 		$default_headers = [
 			"Cache-Control" => "max-age=0",
 			"Origin" => "{$url}",
@@ -568,20 +569,20 @@ class Web extends Service
 			$hhs[] = "$key: $val";
 
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $hhs);
-		
+
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		
+
         $html = curl_exec($ch);
 
 		$info = curl_getinfo($ch);
-		
+
 		if ($info['http_code'] == 301)
 			if (isset($info['redirect_url']) && $info['redirect_url'] != $url)
 				return $this->getUrl($info['redirect_url']);
-		
+
 		curl_close($ch);
-		
+
 		return $html;
 	}
 }
