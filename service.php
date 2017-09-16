@@ -578,7 +578,7 @@ class Web extends Service
 	{
 		if (strpos($uri, '.') == false) return false; // urls must contain a dot
 		if ( ! (substr($uri, 0, 4) == 'http')) $uri = "http://$uri"; // force http
-		return filter_var($uri, FILTER_VALIDATE_URL);
+		return filter_var($uri, FILTER_SANITIZE_URL);
 	}
 
 	private function getUrl($url, &$info = [])
