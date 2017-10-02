@@ -515,8 +515,8 @@ class Web extends Service
 			// if it is working for the app, convert the links to onclick
 			$di = \Phalcon\DI\FactoryDefault::getDefault();
 			if($di->get('environment') == "app") {
-				$node->setAttribute('href', "");
-				$node->setAttribute('onclick', "apretaste.doaction('WEB $src', false, '', true);");
+				$node->setAttribute('href', "#!");
+				$node->setAttribute('onclick', "apretaste.doaction('WEB $src', false, '', true); return false;");
 			}
 			// else convert the links to mailto
 			else{
