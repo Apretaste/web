@@ -47,6 +47,10 @@ class Web extends Service
 			// get the HTML from the URL
 			$html = $this->getWeb($url);
 
+			if (is_object($html))
+				if (get_class($html)=="Response")
+					return $html;
+			
 			// save visit in the database
 			$this->saveVisit($url);
 
@@ -85,14 +89,15 @@ class Web extends Service
 	 */
 	private function getTempDir ()
 	{
-		$www_root = $this->www_root;
+		$di = \Phalcon\DI\FactoryDefault::getDefault();
+		$wwwroot = $di->get('path')['root'];
 
-		if (! file_exists("$www_root/temp/navegar")) mkdir("$www_root/temp/navegar");
-		if (! file_exists("$www_root/temp/navegar/cookies")) mkdir("$www_root/temp/navegar/cookies");
-		if (! file_exists("$www_root/temp/navegar/files")) mkdir("$www_root/temp/navegar/files");
-		if (! file_exists("$www_root/temp/navegar/searchcache")) mkdir("$www_root/temp/navegar/searchcache");
+		if (! file_exists("$wwwroot/temp/navegar")) mkdir("$wwwroot/temp/navegar");
+		if (! file_exists("$wwwroot/temp/navegar/cookies")) mkdir("$wwwroot/temp/navegar/cookies");
+		if (! file_exists("$wwwroot/temp/navegar/files")) mkdir("$wwwroot/temp/navegar/files");
+		if (! file_exists("$wwwroot/temp/navegar/searchcache")) mkdir("$wwwroot/temp/navegar/searchcache");
 
-		return "$www_root/temp/navegar";
+		return "$wwwroot/temp/navegar";
 	}
 
 	/**
@@ -444,7 +449,36 @@ class Web extends Service
 	private function getWeb($url)
 	{
 		// get the contents of the URL
-		$html = $this->getUrl($url); //file_get_contents($url);
+		$html = $this->getUrl($url, $info); //file_get_contents($url);
+
+		// show image
+
+		if (isset($info['content_type']))
+			if (substr($info['content_type'], 0, 6) == 'image/') {
+
+				// save image file
+				$filePath = $this->getTempDir() . "/files/image-" . md5($url) . ".jpg";
+				file_put_contents($filePath, $html);
+
+				// optimize the image
+				$this->utils->optimizeImage($filePath);
+
+				// save the image in the array for the template
+				$images = array(
+						$filePath
+				);
+				
+				$response = new Response();
+				$response->setResponseSubject('Imagen en la web');
+				$response->createFromTemplate('image.tpl', [
+						'title' => 'Imagen en la web',
+						'type' => 'image',
+						'images' => $images,
+						'url' => $url
+				], $images);
+				
+				return $response;
+			}
 
 		// create DOM element
 		$dom = new DOMDocument;
@@ -544,10 +578,10 @@ class Web extends Service
 	{
 		if (strpos($uri, '.') == false) return false; // urls must contain a dot
 		if ( ! (substr($uri, 0, 4) == 'http')) $uri = "http://$uri"; // force http
-		return filter_var($uri, FILTER_VALIDATE_URL);
+		return filter_var($uri, FILTER_SANITIZE_URL);
 	}
 
-	private function getUrl($url)
+	private function getUrl($url, &$info = [])
 	{
 	    $url = str_replace("//", "/", $url);
 	    $url = str_replace("http:/","http://", $url);
@@ -579,7 +613,7 @@ class Web extends Service
 
 		if ($info['http_code'] == 301)
 			if (isset($info['redirect_url']) && $info['redirect_url'] != $url)
-				return $this->getUrl($info['redirect_url']);
+				return $this->getUrl($info['redirect_url'], $info);
 
 		curl_close($ch);
 
