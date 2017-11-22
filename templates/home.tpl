@@ -39,7 +39,7 @@
 <p align="justify">Escribe un correo a Apretaste y en el asunto pon la palabra WEB PUBLICAR seguida de una palabra que identifica tu sitio. Luego adjunta los archivos que componen tu sitio.</p>
 <p>Por ejemplo:</p>
 
-Para: <b>{apretaste_email}</b><br/>
+Para: <b>{$APRETASTE_EMAIL}</b><br/>
 Asunto: <b>WEB PUBLICAR misitio</b><br/>
 Ajuntos: <b>index.html, imagen.jpg, style.css</b><br/>
 
