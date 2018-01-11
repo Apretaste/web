@@ -50,7 +50,7 @@ class Web extends Service
 			if (is_object($html))
 				if (get_class($html)=="Response")
 					return $html;
-			
+
 			// save visit in the database
 			$this->saveVisit($url);
 
@@ -454,20 +454,15 @@ class Web extends Service
 		// show image
 
 		if (isset($info['content_type']))
-			if (substr($info['content_type'], 0, 6) == 'image/') {
-
+		{
+			if (substr($info['content_type'], 0, 6) == 'image/')
+			{
 				// save image file
 				$filePath = $this->getTempDir() . "/files/image-" . md5($url) . ".jpg";
 				file_put_contents($filePath, $html);
 
-				// optimize the image
-				$this->utils->optimizeImage($filePath);
-
 				// save the image in the array for the template
-				$images = array(
-						$filePath
-				);
-				
+				$images = [$filePath];
 				$response = new Response();
 				$response->setResponseSubject('Imagen en la web');
 				$response->createFromTemplate('image.tpl', [
@@ -476,9 +471,10 @@ class Web extends Service
 						'images' => $images,
 						'url' => $url
 				], $images);
-				
+
 				return $response;
 			}
+		}
 
 		// create DOM element
 		$dom = new DOMDocument;
