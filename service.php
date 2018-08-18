@@ -537,14 +537,22 @@ class Web extends Service
 		{
 			// get place where the link points
 			$src = $node->getAttribute("href");
+			$src = (substr($src,0,1)!="/")?$src:substr($src,1);
+			$part=substr($src,0,stripos($src,"/"));
+			$last=substr($url,strlen($url)-strlen($part)-1,strlen($part));
+
+			if ($part==$last) {
+				$src = str_ireplace($part,"",$src);
+				$src = (substr($src,0,1)!="/")?$src:substr($src,1);
+			}
 
 			// replace inner links by their full vesion
 			if( ! $this->isValidUrl($src)) $src = "$url/$src";
 			str_replace("//", "/", $src);
 
-			// if it is working for the app, convert the links to onclick
+			// if it is not working for email, convert the links to onclick
 			$di = \Phalcon\DI\FactoryDefault::getDefault();
-			if($di->get('environment') == "app") {
+			if($di->get('environment') != "email") {
 				$node->setAttribute('href', "#!");
 				$node->setAttribute('onclick', "apretaste.doaction('WEB $src', false, '', true); return false;");
 			}
@@ -572,7 +580,7 @@ class Web extends Service
 	 */
 	private function isValidUrl($uri)
 	{
-		if (strpos($uri, '.') == false) return false; // urls must contain a dot
+		if (strpos(substr($uri,0,strlen($uri)-6), '.') == false) return false; // urls must contain a dot, and not in the end (extension)
 		if ( ! (substr($uri, 0, 4) == 'http')) $uri = "http://$uri"; // force http
 		return filter_var($uri, FILTER_SANITIZE_URL);
 	}
