@@ -554,7 +554,7 @@ class Web extends Service
 			$di = \Phalcon\DI\FactoryDefault::getDefault();
 			if($di->get('environment') != "email") {
 				$node->setAttribute('href', "#!");
-				$node->setAttribute('onclick', "apretaste.doaction('WEB $src', false, '', true); return false;");
+				$node->setAttribute('onclick', "apretaste.doaction('WEB $src', false, '', true, ''); return false;");
 			}
 			// else convert the links to mailto
 			else{
