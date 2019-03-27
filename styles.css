@@ -1,0 +1,14 @@
+.suffix {
+	position: absolute;
+	width: 1.5rem;
+	font-size: 2rem;
+	transition: color .2s;
+	top: 1.3rem;
+	right:0px;
+}
+
+.card-panel {
+	padding: 5px;
+	overflow-wrap: break-word;
+	min-height: 80px;
+}

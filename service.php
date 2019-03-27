@@ -1,34 +1,26 @@
 <?php
 
-class Web extends Service
+class Service
 {
 	/**
-	 * Function executed when the service is called
+	 * Opens the browser screen
 	 *
 	 * @param Request $request
 	 * @return Response
 	 */
-	public function _main (Request $request, $agent = 'default')
+	public function _main (Request $request, Response $response)
 	{
 		//
 		// show welcome message when query is empty
 		//
-		if (empty($request->query))
-		{
+		if (empty($request->input->query)) {
 			// get visits
-			$db = new Connection();
-			$result = $db->query("SELECT * FROM _navegar_visits WHERE site is not null and site <> '' ORDER BY usage_count DESC LIMIT 10;");
+			$result = Connection::query("SELECT * FROM _navegar_visits WHERE site is not null and site <> '' ORDER BY usage_count DESC LIMIT 10;");
 			if (empty($result[0])) $result = false;
 
-			// get internal websites
-			$sites = $db->query("SELECT domain FROM _web_sites order by inserted desc LIMIT 10;");
-			if (empty($sites[0])) $sites = false;
-
 			// create response
-			$response = new Response();
 			$response->setCache("month");
-			$response->setResponseSubject("Navegar en Internet");
-			$response->createFromTemplate("home.tpl", array('visits' => $result, 'sites' => $sites));
+			$response->setTemplate("home.ejs", ['visits' => $result]);
 			return $response;
 		}
 
@@ -40,8 +32,7 @@ class Web extends Service
 		// if the argument is a URL, open it
 		//
 		$url = $this->isValidUrl($request->query);
-		if($url)
-		{
+		if($url) {
 			set_time_limit(900);
 
 			// get the HTML from the URL
@@ -58,11 +49,9 @@ class Web extends Service
 			$di = \Phalcon\DI\FactoryDefault::getDefault();
 			$byEmail = $di->get('environment') != "app";
 
-			$response = new Response();
 			$response->setCache("month");
-			$response->setResponseSubject("Su web {$request->query}");
-			$response->setEmailLayout('email_minimal.tpl');
-			$response->createFromTemplate("basic.tpl", array("body"=>$html, "url"=>$url, "byEmail"=>$byEmail));
+			$response->setEmailLayout('email_minimal.ejs');
+			$response->setTemplate("basic.ejs", array("body"=>$html, "url"=>$url, "byEmail"=>$byEmail));
 			return $response;
 		}
 
@@ -79,7 +68,7 @@ class Web extends Service
 		$google->utils = new Utils();
 		$google->pathToService = "$wwwroot/services/google/";
 		$response = $google->_main($request);
-		$response->template = "google.tpl";
+		$response->template = "google.ejs";
 		$response->setCache("month");
 		return $response;
 	}
@@ -175,18 +164,6 @@ class Web extends Service
 	}
 
 	/**
-	 * Singleton, return valid email address to A!
-	 *
-	 * @return String
-	 */
-	private function getMailTo ()
-	{
-		if (is_null($this->mail_to)) $this->mail_to = $this->utils->getValidEmailAddress();
-
-		return $this->mail_to;
-	}
-
-	/**
 	 * Save visit stats
 	 *
 	 * @param string $url
@@ -200,8 +177,7 @@ class Web extends Service
 
 			if (! empty(trim($site))) return false;
 
-			$db = new Connection();
-			$r = $db->deepQuery("SELECT * FROM _navegar_visits WHERE site = '$site';");
+			$r = Connection::deepQuery("SELECT * FROM _navegar_visits WHERE site = '$site';");
 
 			if (empty($r)) {
 
@@ -210,7 +186,7 @@ class Web extends Service
 				$sql = "UPDATE _navegar_visits SET usage_count = usage_count + 1, last_usage = CURRENT_TIMESTAMP WHERE site = '$site';";
 			}
 
-			$db->deepQuery($sql);
+			Connection::deepQuery($sql);
 
 			return true;
 		} catch (Exception $e) {}
@@ -228,8 +204,6 @@ class Web extends Service
 		$url = $request->query;
 		if(empty($url))
 		{
-			$response = new Response();
-			$response->setResponseSubject("Debe insertar una website a buscar");
 			$response->createFromText("Usted no ha insertado ninguna website a buscar. Inserte la direcci&oacute;n web en el asunto del email justo despu&eacute;s de la palabra WEB.<br/><br/>Por ejemplo:<br/>Asunto: WEB google.com");
 			return $response;
 		}
@@ -245,8 +219,6 @@ class Web extends Service
 		// do not work for non-existing websites or webs giving errors
 		if($statusCode != 200)
 		{
-			$response = new Response();
-			$response->setResponseSubject("La website no existe o esta temporalmente caida");
 			$response->createFromText("La website <b>$url</b> no existe o se encuentra temporalmente ca&iacute;da. Por favor compruebe la sintaxis o intente nuevamente en algunos minutos.");
 			return $response;
 		}
@@ -267,17 +239,13 @@ class Web extends Service
 
 			if( ! file_exists($file))
 			{
-				$response = new Response();
-				$response->setResponseSubject("Error descargando su website");
 				$response->createFromText("Tuvimos un error descargando la website <b>$url</b>. Por favor intente nuevamente en algunos minutos.");
 				return $response;
 			}
 		}
 
 		// respond to the user with the pdf of website attached
-		$response = new Response();
-		$response->setResponseSubject("Aqui esta su website");
-		$response->createFromTemplate("pdf.tpl", array("url"=>$url), array(), array($file));
+		$response->setTemplate("pdf.ejs", array("url"=>$url), array(), array($file));
 		return $response;
 	}
 
@@ -289,7 +257,6 @@ class Web extends Service
 	 */
 	public function _paginas($request)
 	{
-		$connection = new Connection();
 		$www_root = $this->pathToService."/../../public/w/";
 
 		$limit = 10;
@@ -309,7 +276,6 @@ class Web extends Service
 		$pagging = array();
 		for($i = 1; $i <= $offsets; $i++) $pagging[]= $i;
 
-		$response = new Response();
 		if (is_array($sites) && count($sites) > 0)
 		{
 			foreach($sites as $k=>$site)
@@ -328,12 +294,10 @@ class Web extends Service
 			}
 
 			$response->setCache("day");
-			$response->setResponseSubject("Directorio de paginas en Apretaste");
-			$response->createFromTemplate('sites.tpl', array('sites' => $sites, 'pagging' => $pagging));
+			$response->setTemplate('sites.ejs', array('sites' => $sites, 'pagging' => $pagging));
 			return $response;
 		}
 
-		$response->setResponseSubject('No se econtraron paginas en Apretaste');
 		$response->createFromText("No se econtraron p&aacute;ginas en Apretaste");
 		return $response;
 	}
@@ -346,7 +310,6 @@ class Web extends Service
 	 */
 	public function _publicar(Request $request)
 	{
-		$connection = new Connection();
 		$www_root = $this->pathToService."/../../public/w/";
 		$domain = trim($request->query);
 		$title = '';
@@ -376,8 +339,6 @@ class Web extends Service
 
 			if (isset($r[0]->owner)) if ($r[0]->owner !== $owner)
 			{
-				$response = new Response();
-				$response->setResponseSubject("Web: No se pudo publicar la web en $domain");
 				$response->createFromText("Ya existe una web llamada $domain en Apretaste y t&uacute; no eres su due&ntilde;o. Rectifica que est&eacute;s escribiendo bien el nombre que deseas o utiliza otro nombre.");
 				return $response;
 			}
@@ -427,9 +388,7 @@ class Web extends Service
 		}
 
 		$connection->query($sql);
-		$response = new Response();
-		$response->setResponseSubject("Su web ha sido publicada en Apretaste");
-		$response->createFromTemplate("public.tpl", array(
+		$response->setTemplate("public.ejs", array(
 			'domain' => $domain,
 			'title' => $title,
 			'num_files' => $num_files,
@@ -463,9 +422,7 @@ class Web extends Service
 
 				// save the image in the array for the template
 				$images = [$filePath];
-				$response = new Response();
-				$response->setResponseSubject('Imagen en la web');
-				$response->createFromTemplate('image.tpl', [
+				$response->setTemplate('image.ejs', [
 						'title' => 'Imagen en la web',
 						'type' => 'image',
 						'images' => $images,
@@ -607,7 +564,6 @@ class Web extends Service
 			$hhs[] = "$key: $val";
 
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $hhs);
-
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
