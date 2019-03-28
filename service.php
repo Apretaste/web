@@ -5,24 +5,13 @@ class Service
 	/**
 	 * Opens the browser screen
 	 *
+	 * @author salvipascual
 	 * @param Request $request
-	 * @return Response
+	 * @param Response $response
 	 */
 	public function _main (Request $request, Response $response)
 	{
-		$request->input->query = "hello world";
-
-		// get the search results
-		$results = $this->search($request->input->query);
-
-		// create the response
-		$content = ["query" => $request->input->query, "results" => $results];
-		$response->setCache("year");
-		$response->setTemplate("google.ejs", $content);
-		return $response;
-
-
-
+		$request->input->query = "http://google.com";
 
 		//
 		// show welcome message when query is empty
@@ -38,6 +27,21 @@ class Service
 			return $response;
 		}
 
+		//
+		// download the page if a valid domain name or URL is passed
+		//
+		if ($this->isValidDomain($request->input->query)) {
+			echo("VALID DOMAIN NAME");
+			return $response;
+		}
+
+		//
+		// else search in the web and return results
+		//
+		return $this->_search($request, $response);
+
+
+exit;
 		// fix broken URLs
 		if (substr($request->query, 0, 2) == '//') $request->query = 'http:' . $request->query;
 		elseif (substr($request->query, 0, 1) == '/')  $request->query = 'http:/' . $request->query;
@@ -86,6 +90,41 @@ class Service
 		$response->setCache("month");
 		return $response;
 	}
+
+	/**
+	 * Search for a string and return a list of results
+	 *
+	 * @author salvipascual
+	 * @param Request $request
+	 * @param Response $response
+	 */
+	public function _search (Request $request, Response $response)
+	{
+		// get the search results
+		$results = $this->search($request->input->query);
+
+		// if nothing was passed, let the user know
+		if(empty($results)) {
+			$content = [
+				"header"=>"No hay resultados",
+				"icon"=>"sentiment_very_dissatisfied",
+				"text" => "No encontramos resultados para el término '{$request->input->query}'. Por favor modifique su búsqueda e intente nuevamente",
+				"button" => ["href"=>"WEB", "caption"=>"Cambiar búsqueda"]];
+			return $response->setTemplate('message.ejs', $content);
+		}
+
+		// create the response
+		$content = ["query" => $request->input->query, "results" => $results];
+		$response->setCache("year");
+		$response->setTemplate("google.ejs", $content);
+		return $response;
+	}
+
+
+
+
+
+
 
 	/**
 	 *
@@ -316,105 +355,6 @@ class Service
 		return $response;
 	}
 
-	/**
-	 * Publish a web page online under apretaste.com domain
-	 *
-	 * @param Request $request
-	 * @return Response
-	 */
-	public function _publicar(Request $request)
-	{
-		$www_root = $this->pathToService."/../../public/w/";
-		$domain = trim($request->query);
-		$title = '';
-
-		$p = strpos($domain, ' ');
-		if ($p !== false)
-		{
-			$domain = substr($domain,0,$p);
-			$title = trim(substr($domain,$p));
-		}
-
-		$domain = $this->utils->clearStr($domain);
-		$domain = strtolower($domain); // super important!
-
-		$owner = $request->email;
-		$websites = $connection->query("SELECT * FROM _web_sites WHERE owner = '$owner';");
-
-		if ( ! is_array($websites)) $websites = array();
-		if ( ! file_exists($www_root)) mkdir($www_root);
-
-		$exists = false;
-		if (file_exists($www_root."$domain"))
-		{
-			$exists = true;
-			$sql = "SELECT * FROM _web_sites WHERE domain ='$domain';";
-			$r = $connection->query($sql);
-
-			if (isset($r[0]->owner)) if ($r[0]->owner !== $owner)
-			{
-				$response->createFromText("Ya existe una web llamada $domain en Apretaste y t&uacute; no eres su due&ntilde;o. Rectifica que est&eacute;s escribiendo bien el nombre que deseas o utiliza otro nombre.");
-				return $response;
-			}
-		}
-		else
-		{
-			mkdir($www_root."$domain");
-		}
-
-		$files_changed = [];
-
-		$num_files = 0;
-		foreach($request->attachments as $at)
-		{
-			if (isset($at->type))
-			{
-				if (strpos("jpg,jpeg,image/jpg,image/jpeg,image/png,png,image/gif,gif,text/plain,text,html,text/html,text/css,application/javascript,otf,application/x-font-ttf,image/svg+xml,application/vnd.ms-fontobject,application/x-font-woff,application/x-font-woff2,application/octet-stream",$at->type)!==false)
-				{
-					if (isset($at->name))
-					{
-						$num_files++;
-						$filename = $at->name;
-						$filename = str_ireplace(".php", "", $filename);
-						$files_changed[] = $filename;
-						$filePath = $www_root."$domain/$filename";
-						if (file_exists($filePath)) unlink($filePath);
-						file_put_contents($filePath, base64_decode($at->content));
-					}
-				}
-			}
-		}
-
-		$index_default = "<h1>$domain</h1>";
-
-		if ( ! file_exists($www_root."$domain/index.html"))
-		{
-			file_put_contents($www_root."$domain/index.html", $index_default);
-		}
-
-		if ($exists)
-		{
-			$sql = "UPDATE _web_sites SET title = '$title' WHERE domain = '$domain';";
-		}
-		else
-		{
-			$sql = "INSERT IGNORE INTO _web_sites (domain, title, owner) VALUES ('$domain', '$title','$owner');";
-		}
-
-		$connection->query($sql);
-		$response->setTemplate("public.ejs", array(
-			'domain' => $domain,
-			'title' => $title,
-			'num_files' => $num_files,
-			'files_changed' => $files_changed
-		));
-
-		// post in pizarra
-		$text = ($exists ? "He actualizado mi" : "He publicado un"). " sitio web en Apretaste. Pueden visitarlo en http://$domain.apretaste.com";
-		$connection->query("INSERT INTO _pizarra_notes (email, text) VALUES ('{$request->email}', '$text')");
-
-		return $response;
-	}
 
 	/*
 	 * Open a URL
@@ -601,15 +541,17 @@ class Service
 
 
 	/**
-	 * Generic searcher
+	 * Search for a term in Bing and return formatted results
 	 *
 	 * @author kumahacker
-	 * @param string $q
-	 * @param integer $engine
-	 * @return array
+	 * @param String $q
+	 * @return Array
 	 */
 	private function search($q)
 	{
+		// do not allow empty queries
+		if(empty($q)) return [];
+
 		// get the Bing key
 		$di = \Phalcon\DI\FactoryDefault::getDefault();
 		$key = $di->get('config')['bing']['key1'];
@@ -632,16 +574,28 @@ class Service
 	}
 
 	/**
-	 * Return a remote content
+	 * Checks if a domain name is valid
 	 *
-	 * @author vilfer
-	 * @param  string url
-	 * @param integer key
-	 *	@param string query
-	 *	@return array
+	 * @param String $domain 
+	 * @return Boolean
 	 */
-	private function BingWebSearch($url, $key, $query)
+	private function isValidDomain($domain)
 	{
+		// FILTER_VALIDATE_URL checks length but..why not? so we dont move forward with more expensive operations
+		$domain_len = strlen($domain);
+		if ($domain_len < 3 OR $domain_len > 253) return FALSE;
 
+		//getting rid of HTTP/S just in case was passed.
+		if(stripos($domain, 'http://') === 0) $domain = substr($domain, 7); 
+		elseif(stripos($domain, 'https://') === 0) $domain = substr($domain, 8);
+
+		//we dont need the www either
+		if(stripos($domain, 'www.') === 0) $domain = substr($domain, 4);
+
+		//Checking for a '.' at least, not in the beginning nor end, since http://.abcd. is reported valid
+		if(strpos($domain, '.') === FALSE OR $domain[strlen($domain)-1]=='.' OR $domain[0]=='.') return FALSE;
+
+		//now we use the FILTER_VALIDATE_URL, concatenating http so we can use it, and return BOOL
+		return (filter_var ('http://' . $domain, FILTER_VALIDATE_URL)===FALSE)? FALSE : TRUE;
 	}
 }
