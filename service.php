@@ -10,6 +10,20 @@ class Service
 	 */
 	public function _main (Request $request, Response $response)
 	{
+		$request->input->query = "hello world";
+
+		// get the search results
+		$results = $this->search($request->input->query);
+
+		// create the response
+		$content = ["query" => $request->input->query, "results" => $results];
+		$response->setCache("year");
+		$response->setTemplate("google.ejs", $content);
+		return $response;
+
+
+
+
 		//
 		// show welcome message when query is empty
 		//
@@ -544,9 +558,9 @@ class Service
 
 	private function getUrl($url, &$info = [])
 	{
-	    $url = str_replace("//", "/", $url);
-	    $url = str_replace("http:/","http://", $url);
-        $url = str_replace("https:/","https://", $url);
+		$url = str_replace("//", "/", $url);
+		$url = str_replace("http:/","http://", $url);
+		$url = str_replace("https:/","https://", $url);
 
 		$ch = curl_init();
 
@@ -564,10 +578,10 @@ class Service
 			$hhs[] = "$key: $val";
 
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $hhs);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
-        $html = curl_exec($ch);
+		$html = curl_exec($ch);
 
 		$info = curl_getinfo($ch);
 
@@ -578,5 +592,56 @@ class Service
 		curl_close($ch);
 
 		return $html;
+	}
+
+
+
+
+
+
+
+	/**
+	 * Generic searcher
+	 *
+	 * @author kumahacker
+	 * @param string $q
+	 * @param integer $engine
+	 * @return array
+	 */
+	private function search($q)
+	{
+		// get the Bing key
+		$di = \Phalcon\DI\FactoryDefault::getDefault();
+		$key = $di->get('config')['bing']['key1'];
+
+		// perform the request and get the JSON response
+		$context = stream_context_create(['http' => ['header' => "Ocp-Apim-Subscription-Key: $key\r\n", 'method' => 'GET']]);
+		$result = file_get_contents("https://api.cognitive.microsoft.com/bing/v7.0/search?q=" . urlencode($q), false, $context);
+		$json = json_decode($result);
+
+		// format the search results
+		$results = [];
+		if(isset($json->webPages)) {
+			foreach($json->webPages->value as $v) {
+				$v = get_object_vars($v);
+				$results[] = ["title" => $v['name'], 'url' => $v['url'], 'note' => $v['snippet']];
+			}
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Return a remote content
+	 *
+	 * @author vilfer
+	 * @param  string url
+	 * @param integer key
+	 *	@param string query
+	 *	@return array
+	 */
+	private function BingWebSearch($url, $key, $query)
+	{
+
 	}
 }

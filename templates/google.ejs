@@ -1,7 +1,15 @@
-<h1>{$query|capitalize}</h1>
+<div class="row">
+	<div class="col s12">
+		<h1><%= query %></h1>
 
-{foreach from=$responses item=response name=google}
-	<b>{$smarty.foreach.google.index + 1}) {link href="WEB {$response['url']}" caption="{$response['title']}"}</b><br/>
-	<font style="color: #545454;font-size: small;">{$response['note']}</font><br/>
-	{space15}
-{/foreach}
+		<% results.forEach(res => { %>
+			<div class="box">
+				<a href="#!">
+					<div class="title"><%= res.title %></div>
+					<div class="url"><%= res.url %></div>
+				</a>
+				<div class="note"><%= res.note %></div>
+			</div>
+		<% }) %>
+	</div>
+</div>

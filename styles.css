@@ -1,3 +1,7 @@
+/*
+	HOME SCREEN
+*/
+
 .suffix {
 	position: absolute;
 	width: 1.5rem;
@@ -12,3 +16,31 @@
 	overflow-wrap: break-word;
 	min-height: 80px;
 }
+
+/*
+	GOOGLE SCREEN
+*/
+
+.box {
+	padding: 30px 0px;
+}
+
+.box:nth-child(odd) {
+	background-color: #F8F8F8;
+}
+
+.title {
+	color: #1a0dab;
+	font-size: 18px;
+}
+
+.url {
+	color: #006621;
+	font-size: 14px;
+}
+
+.note {
+	color: #545454;
+	font-size: 13px;
+}
+
