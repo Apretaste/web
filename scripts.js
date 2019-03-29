@@ -1,3 +1,20 @@
+//
+// ON LOAD FUNCTIONS
+//
+
+$(document).ready(function(){
+	$('#query').keypress(function(e) {
+		if (e.keyCode == 13 || event.which == 13) {
+			e.preventDefault();
+			submit();
+		}
+	});
+});
+
+//
+// FUCTIONS FOR THE SERVICE
+//
+
 // search for a website
 function submit() {
 	// variable to save the ID of the responses
