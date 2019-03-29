@@ -12,8 +12,8 @@ class Service
 	public function _main (Request $request, Response $response)
 	{
 		// get data from the request
-		$query = $request->input->data->query;
-		$save = $request->input->data->save;
+		$query = isset($request->input->data->query) ? $request->input->data->query : "";
+		$compress = isset($request->input->data->save) ? $request->input->data->save : false;
 
 		//
 		// show welcome message when query is empty
@@ -40,7 +40,7 @@ class Service
 			if( ! php::startsWith($query, "http")) $query = "http://$query";
 
 			// get the html code of the page
-			$html = $this->browseCompress($query);
+			$html = $this->browse($query, $compress);
 
 			// create response
 			$response->setCache("month");
@@ -73,103 +73,42 @@ class Service
 	}
 
 	/**
-	 * Download the compressed version of a website
+	 * Download the latest version of the website
 	 *
 	 * @author salvipascual
-	 * @param Request $url
+	 * @param String $url
+	 * @param Boolean $compressed
 	 * @return String
 	 */
-	private function browseCompress($url)
+	private function browse($url, $compressed)
 	{
-		// get the website
-		$html = file_get_contents($url);
+		// chech if the page is in cache
+		$urlHash = md5($url);
+		$cache = Connection::query("SELECT id, html FROM _web_cache WHERE url_hash = '$urlHash'");
+		
+		// if not in the cache, get online
+		if(empty($cache)) {
+			// get the website
+			$html = file_get_contents($url);
+			$title = $this->getPageTitle($html);
 
-		// create DOM element
-		$dom = new DOMDocument;
-		@$dom->loadHTML($html);
+			// cache the page
+			$htmlEncoded = base64_encode($html);
+			Connection::query("
+				INSERT INTO _web_cache(url_hash, url, title, html) 
+				VALUES ('$urlHash', '$url', '$title', '$htmlEncoded')");
+		} 
+		// else load from cache
+		else {
+			// load from cache
+			$html = base64_decode($cache[0]->html);
 
-		// remove <meta> tags
-		while (($r = $dom->getElementsByTagName("meta")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
+			// increase cache counter
+			Connection::query("UPDATE _web_cache SET visits=visits+1 WHERE id='{$cache[0]->id}'");
 		}
 
-		// remove <script> tags
-		while (($r = $dom->getElementsByTagName("script")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-
-		// remove outside css
-		while (($r = $dom->getElementsByTagName("link")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-
-		// remove embebed css
-		while (($r = $dom->getElementsByTagName("style")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-
-		// remove iframes
-		while (($r = $dom->getElementsByTagName("iframe")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-
-		// remove forms and form elements
-		while (($r = $dom->getElementsByTagName("form")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-		while (($r = $dom->getElementsByTagName("input")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-		while (($r = $dom->getElementsByTagName("select")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-		while (($r = $dom->getElementsByTagName("textarea")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-
-		// remove all comments
-		$xpath = new DOMXPath($dom);
-		foreach ($xpath->query('//comment()') as $comment) {
-			$comment->parentNode->removeChild($comment);
-		}
-		$body = $xpath->query('//body')->item(0);
-		$dom->saveXml($body);
-
-		// remove <img> tags
-		while (($r = $dom->getElementsByTagName("img")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-
-		// replace <a> by mailto or onclick
-		foreach ($dom->getElementsByTagName('a') as $node) {
-			// get place where the link points
-			$src = $node->getAttribute("href");
-			$src = (substr($src,0,1)!="/")?$src:substr($src,1);
-			$part = substr($src,0,stripos($src,"/"));
-			$last = substr($url,strlen($url)-strlen($part)-1,strlen($part));
-
-			if ($part == $last) {
-				$src = str_ireplace($part,"",$src);
-				$src = (substr($src,0,1) != "/")?$src:substr($src, 1);
-			}
-
-			// // replace inner links by their full vesion
-			// if( ! $this->isValidUrl($src)) $src = "$url/$src";
-			// str_replace("//", "/", $src);
-
-			// convert the links to onclick
-			$node->setAttribute('href', "#!");
-			$node->setAttribute('onclick', "apretaste.send({})"); //@TODO
-		}
-
-		// convert DOM back to HTML code
-		$html = $dom->saveHTML();
-
-		// remove inline css
-		preg_match_all('/ style.*?=.*?".*?"/', $html, $matches);
-		foreach ($matches[0] as $match) {
-			$html = str_replace($match, "", $html);
-		}
+		// compress the page
+		$html = $this->compressPage($html);
 
 		return $html;
 	}
@@ -231,5 +170,141 @@ class Service
 
 		//now we use the FILTER_VALIDATE_URL, concatenating http so we can use it, and return BOOL
 		return (filter_var ('http://' . $domain, FILTER_VALIDATE_URL)===FALSE)? FALSE : TRUE;
+	}
+
+	/**
+	 * Get the title of an HTML page 
+	 *
+	 * @author salvipascual
+	 * @param String $html 
+	 * @return String
+	 */
+	private function getPageTitle($html)
+	{
+		// get the title using a regexp
+		$res = preg_match("/<title>(.*)<\/title>/siU", $html, $matches);
+		if ( ! $res) return ""; 
+
+		// remove EOL's and excessive whitespace.
+		return trim(preg_replace('/\s+/', ' ', $matches[1]));
+	}
+
+	/**
+	 * Get the title of an HTML page 
+	 *
+	 * @author salvipascual
+	 * @param String $html 
+	 * @return String
+	 */
+	private function compressPage($html)
+	{
+		// create DOM element
+		$dom = new DOMDocument;
+		@$dom->loadHTML($html);
+
+die($html);
+
+
+while (($r = $dom->getElementsByTagName("body")) && $r->length) {
+	$r->item(0)->parentNode->removeChild($r->item(0));
+}
+
+
+
+		// @TODO only take the BODY tag, we don't need the HEAD section
+
+		// remove unwanted HTML tags
+		while (($r = $dom->getElementsByTagName("meta")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+		while (($r = $dom->getElementsByTagName("script")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+		while (($r = $dom->getElementsByTagName("link")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+		while (($r = $dom->getElementsByTagName("nav")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+		while (($r = $dom->getElementsByTagName("style")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+		while (($r = $dom->getElementsByTagName("iframe")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+		while (($r = $dom->getElementsByTagName("form")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+		while (($r = $dom->getElementsByTagName("input")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+		while (($r = $dom->getElementsByTagName("select")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+		while (($r = $dom->getElementsByTagName("textarea")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+		while (($r = $dom->getElementsByTagName("button")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+		while (($r = $dom->getElementsByTagName("svg")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+		while (($r = $dom->getElementsByTagName("img")) && $r->length) {
+			$r->item(0)->parentNode->removeChild($r->item(0));
+		}
+
+		// remove all comments
+		$xpath = new DOMXPath($dom);
+		foreach ($xpath->query('//comment()') as $comment) {
+			$comment->parentNode->removeChild($comment);
+		}
+		$body = $xpath->query('//body')->item(0);
+		$dom->saveXml($body);
+
+		// replace <a> by mailto or onclick
+// 		foreach ($dom->getElementsByTagName('a') as $node) {
+// 			// get place where the link points
+// 			$src = $node->getAttribute("href");
+// 			$src = (substr($src,0,1)!="/")?$src:substr($src,1);
+// 			$part = substr($src,0,stripos($src,"/"));
+// 			$last = substr($url,strlen($url)-strlen($part)-1,strlen($part));
+
+// 			if ($part == $last) {
+// 				$src = str_ireplace($part,"",$src);
+// 				$src = (substr($src,0,1) != "/")?$src:substr($src, 1);
+// 			}
+
+// 			// replace inner links by their full vesion
+// 			if( ! $this->isValidUrl($src)) $src = "$url/$src";
+// 			str_replace("//", "/", $src);
+
+// 			// convert the links to onclick
+// 			$node->setAttribute('href', "#!");
+// 			$node->setAttribute('onclick', "apretaste.send({})"); //@TODO
+// 		}
+
+		// convert DOM back to HTML code
+		$html = $dom->saveHTML();
+
+		// remove all unwanted attribites
+		preg_match_all('/ style.*?=.*?".*?"/', $html, $matches);
+		foreach ($matches[0] as $match) {
+			$html = str_replace($match, "", $html);
+		}
+		preg_match_all('/ id.*?=.*?".*?"/', $html, $matches);
+		foreach ($matches[0] as $match) {
+			$html = str_replace($match, "", $html);
+		}
+		preg_match_all('/ class.*?=.*?".*?"/', $html, $matches);
+		foreach ($matches[0] as $match) {
+			$html = str_replace($match, "", $html);
+		}
+		preg_match_all('/ align.*?=.*?".*?"/', $html, $matches);
+		foreach ($matches[0] as $match) {
+			$html = str_replace($match, "", $html);
+		}
+
+		return $html;
 	}
 }

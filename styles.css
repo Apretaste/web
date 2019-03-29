@@ -42,3 +42,10 @@
 	font-size: 13px;
 }
 
+/*
+	WEB SCREEN
+*/
+
+#reset-all-css {
+	all: initial;
+}
