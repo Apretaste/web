@@ -1,0 +1,25 @@
+<div class="container">
+	<div class="row">
+		<!-- Input -->
+		<div class="col s12">
+			<div class="input-field">
+				<i class="material-icons green-text small suffix">send</i>
+				<input id="query" placeholder="Inserte texto o página a buscar" value="<%= query %>" type="text"/>
+	
+				<!-- Switch -->
+				<div class="switch">
+					<label>
+						Modo ahorro
+						<input id="save" type="checkbox" checked/>
+						<span class="lever"></span>
+					</label>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- CONTENT -->
+<div class="container">
+	{{APP_TEMPLATE_CODE}}
+</div>
