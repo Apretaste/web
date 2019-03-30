@@ -2,7 +2,7 @@
 	<div class="col s12">
 		<% results.forEach(res => { %>
 			<div class="box">
-				<a href="#!">
+				<a href="#!" onclick="apretaste.send({'command':'WEB', data:{query:'<%= window.btoa(res.url) %>'}})">
 					<div class="title"><%= res.title %></div>
 					<div class="url"><%= res.url %></div>
 				</a>

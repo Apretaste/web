@@ -2,34 +2,14 @@
 	<div class="col s12">
 		<h1>Más visitados</h1>
 	</div>
-	<div class="col s4 m3 l2">
-		<div class="card-panel green">
-			<span class="white-text">google.com</span>
+
+	<% sites.forEach(site => { %>
+	<a href="#!" onclick="apretaste.send({'command':'WEB', data:{query:'<%= window.btoa(site.url) %>'}})">
+		<div class="col s6 m4 l3">
+			<div class="card-panel green">
+				<span class="white-text"><%= cut(site.title || site.url) %></span>
+			</div>
 		</div>
-	</div>
-	<div class="col s4 m3 l2">
-		<div class="card-panel green">
-			<span class="white-text">materializecss.com/cards.html</span>
-		</div>
-	</div>
-	<div class="col s4 m3 l2">
-		<div class="card-panel green">
-			<span class="white-text">apretaste.loc/run/web?cm=web</span>
-		</div>
-	</div>
-	<div class="col s4 m3 l2">
-		<div class="card-panel green">
-			<span class="white-text">https://www.google.com/search?q=css+div+wrap+text&rlz=1C1CHBFcss</span>
-		</div>
-	</div>
-	<div class="col s4 m3 l2">
-		<div class="card-panel green">
-			<span class="white-text">materializecss.com/cards.html</span>
-		</div>
-	</div>
-	<div class="col s4 m3 l2">
-		<div class="card-panel green">
-			<span class="white-text">apretaste.loc/run/web?cm=web</span>
-		</div>
-	</div>
+	</a>
+	<% }) %>
 </div>

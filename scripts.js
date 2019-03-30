@@ -27,10 +27,18 @@ function submit() {
 		return false;
 	}
 
+	// encode URL as base64 to avoid break the JSON
+	var encodedQuery = window.btoa(query);
+
 	// send information to the backend
 	apretaste.send({
 		"command": "WEB",
-		"data": {query:query, save:save},
+		"data": {query:encodedQuery, save:save},
 		"redirect": true
 	});
+}
+
+// cut a string
+function cut(text) {
+	return text.substring(0, 50);
 }

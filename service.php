@@ -12,7 +12,7 @@ class Service
 	public function _main (Request $request, Response $response)
 	{
 		// get data from the request
-		$query = isset($request->input->data->query) ? $request->input->data->query : "";
+		$query = isset($request->input->data->query) ? base64_decode($request->input->data->query) : "";
 		$compress = isset($request->input->data->save) ? $request->input->data->save : false;
 
 		//
@@ -21,13 +21,12 @@ class Service
 
 		if (empty($query)) {
 			// get visits
-			$result = Connection::query("SELECT * FROM _navegar_visits WHERE site is not null and site <> '' ORDER BY usage_count DESC LIMIT 10;");
-			if (empty($result[0])) $result = false;
+			$sites = Connection::query("SELECT url, title FROM _web_cache ORDER BY visits DESC LIMIT 14");
 
 			// create response
 			$response->setCache("day");
 			$response->setLayout('browser.ejs');
-			$response->setTemplate("home.ejs", ['query'=>'', 'visits' => $result]);
+			$response->setTemplate("home.ejs", ['query'=>'', 'sites'=>$sites]);
 			return $response;
 		}
 
@@ -41,6 +40,12 @@ class Service
 
 			// get the html code of the page
 			$html = $this->browse($query, $compress);
+
+			// if nothing was passed, let the user know
+			if(empty($html)) {
+				$response->setLayout('browser.ejs');
+				return $response->setTemplate('error.ejs', ["query"=>$query]);
+			}
 
 			// create response
 			$response->setCache("month");
@@ -58,12 +63,8 @@ class Service
 
 		// if nothing was passed, let the user know
 		if(empty($results)) {
-			$content = [
-				"header"=>"No hay resultados",
-				"icon"=>"sentiment_very_dissatisfied",
-				"text" => "No encontramos resultados para el término '{$query}'. Por favor modifique su búsqueda e intente nuevamente",
-				"button" => ["href"=>"WEB", "caption"=>"Cambiar búsqueda"]];
-			return $response->setTemplate('message.ejs', $content);
+			$response->setLayout('browser.ejs');
+			return $response->setTemplate('error.ejs', ["query"=>$query]);
 		}
 
 		// create the response
@@ -77,38 +78,39 @@ class Service
 	 *
 	 * @author salvipascual
 	 * @param String $url
-	 * @param Boolean $compressed
+	 * @param Boolean $compress
 	 * @return String
 	 */
-	private function browse($url, $compressed)
+	private function browse($url, $compress)
 	{
 		// chech if the page is in cache
 		$urlHash = md5($url);
-		$cache = Connection::query("SELECT id, html FROM _web_cache WHERE url_hash = '$urlHash'");
-		
-		// if not in the cache, get online
-		if(empty($cache)) {
-			// get the website
-			$html = file_get_contents($url);
-			$title = $this->getPageTitle($html);
+		$fileCache = Utils::getTempDir() . "/web/$urlHash.html";
 
-			// cache the page
-			$htmlEncoded = base64_encode($html);
-			Connection::query("
-				INSERT INTO _web_cache(url_hash, url, title, html) 
-				VALUES ('$urlHash', '$url', '$title', '$htmlEncoded')");
-		} 
-		// else load from cache
-		else {
+		// load the page from cache
+		if(file_exists($fileCache)) {
 			// load from cache
-			$html = base64_decode($cache[0]->html);
+			$html = file_get_contents($fileCache);
 
 			// increase cache counter
-			Connection::query("UPDATE _web_cache SET visits=visits+1 WHERE id='{$cache[0]->id}'");
+			Connection::query("UPDATE _web_cache SET visits=visits+1 WHERE url_hash='$urlHash'");
+		}
+		// load the page online
+		else {
+			// get the page from online
+			$html = $this->getHtmlFromUrl($url);
+			$title = $this->getTitle($html);
+
+			// cache the page
+			Connection::query("INSERT IGNORE INTO _web_cache (url_hash, url, title) VALUES ('$urlHash', '$url', '$title')");
+			file_put_contents($fileCache, $html);
 		}
 
+		// stop for NO-JS errors or empty DOCTYPES
+		if(strlen($html) < 500) return "";
+
 		// compress the page
-		$html = $this->compressPage($html);
+		$html = $this->compressPage($html, $url);
 
 		return $html;
 	}
@@ -179,7 +181,7 @@ class Service
 	 * @param String $html 
 	 * @return String
 	 */
-	private function getPageTitle($html)
+	private function getTitle($html)
 	{
 		// get the title using a regexp
 		$res = preg_match("/<title>(.*)<\/title>/siU", $html, $matches);
@@ -194,24 +196,20 @@ class Service
 	 *
 	 * @author salvipascual
 	 * @param String $html 
+	 * @param String $url
 	 * @return String
 	 */
-	private function compressPage($html)
+	private function compressPage($html, $url)
 	{
 		// create DOM element
 		$dom = new DOMDocument;
 		@$dom->loadHTML($html);
 
-die($html);
-
-
-while (($r = $dom->getElementsByTagName("body")) && $r->length) {
-	$r->item(0)->parentNode->removeChild($r->item(0));
-}
-
-
-
-		// @TODO only take the BODY tag, we don't need the HEAD section
+		// use only the BODY tag, we don't need the HEAD
+		$body = $dom->getElementsByTagName('body');
+		$body = $body->item(0);
+		$html = $dom->savehtml($body);
+		@$dom->loadHTML($html);
 
 		// remove unwanted HTML tags
 		while (($r = $dom->getElementsByTagName("meta")) && $r->length) {
@@ -254,35 +252,27 @@ while (($r = $dom->getElementsByTagName("body")) && $r->length) {
 			$r->item(0)->parentNode->removeChild($r->item(0));
 		}
 
-		// remove all comments
-		$xpath = new DOMXPath($dom);
-		foreach ($xpath->query('//comment()') as $comment) {
-			$comment->parentNode->removeChild($comment);
+		// get the domain and directory from the URL
+		$urlp = parse_url($url);
+		$urlDomain = $urlp['scheme'].'://'.$urlp['host'];
+		$urlDir = dirname($url).'/';
+
+		// replace <a> by onclick
+		foreach ($dom->getElementsByTagName('a') as $node) {
+			// get the URL to the new page
+			$src = trim($node->getAttribute("href"));
+
+			// complete relative links
+			if(php::startsWith($src, '/')) $src = $urlDomain.$src;
+			elseif( ! php::startsWith($src, 'http')) $src = $urlDir.$src;
+
+			// encode to avoid JSON errors
+			$srcEncoded = base64_encode($src);
+
+			// convert the links to onclick
+			$node->setAttribute('href', "#!");
+			$node->setAttribute('onclick', "apretaste.send({command:'WEB', data:{query:'$srcEncoded'}})");
 		}
-		$body = $xpath->query('//body')->item(0);
-		$dom->saveXml($body);
-
-		// replace <a> by mailto or onclick
-// 		foreach ($dom->getElementsByTagName('a') as $node) {
-// 			// get place where the link points
-// 			$src = $node->getAttribute("href");
-// 			$src = (substr($src,0,1)!="/")?$src:substr($src,1);
-// 			$part = substr($src,0,stripos($src,"/"));
-// 			$last = substr($url,strlen($url)-strlen($part)-1,strlen($part));
-
-// 			if ($part == $last) {
-// 				$src = str_ireplace($part,"",$src);
-// 				$src = (substr($src,0,1) != "/")?$src:substr($src, 1);
-// 			}
-
-// 			// replace inner links by their full vesion
-// 			if( ! $this->isValidUrl($src)) $src = "$url/$src";
-// 			str_replace("//", "/", $src);
-
-// 			// convert the links to onclick
-// 			$node->setAttribute('href', "#!");
-// 			$node->setAttribute('onclick', "apretaste.send({})"); //@TODO
-// 		}
 
 		// convert DOM back to HTML code
 		$html = $dom->saveHTML();
@@ -305,6 +295,65 @@ while (($r = $dom->getElementsByTagName("body")) && $r->length) {
 			$html = str_replace($match, "", $html);
 		}
 
+		return $this->minifyHTML($html);
+	}
+
+	/**
+	 * Remove white spaces and extra chars to minify an HTML
+	 *
+	 * @author salvipascual
+	 * @param String $html 
+	 * @return String
+	 */
+	function minifyHTML($html)
+	{
+		$search = [
+			'/\>[^\S ]+/s', // strip whitespaces after tags, except space
+			'/[^\S ]+\</s', // strip whitespaces before tags, except space
+			'/(\s)+/s', // shorten multiple whitespace sequences
+			'/<!--(.|\s)*?-->/'// Remove HTML comments
+		];
+		return preg_replace($search, ['>', '<', '\\1', ''], $html);
+	}
+
+	/**
+	 * Gets the HTML code for a website
+	 *
+	 * @author salvipascual
+	 * @param String $html 
+	 * @return String
+	 */
+	private function getHtmlFromUrl($url)
+	{
+		// prepare URL for CURL
+		$url = str_replace("//", "/", $url);
+		$url = str_replace("http:/","http://", $url);
+		$url = str_replace("https:/","https://", $url);
+
+		// prepare headers for CURL
+		$headers = [];
+		foreach ([
+			"Cache-Control" => "max-age=0",
+			"Origin" => "{$url}",
+			"User-Agent" => "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36",
+			"Content-Type" => "application/x-www-form-urlencoded"
+		] as $key => $val) $headers[] = "$key: $val";
+
+		// start CURL
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url); 
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		$html = curl_exec($ch);
+		$info = curl_getinfo($ch);
+
+		// handle 301 redirects
+		if ($info['http_code'] == 301 && isset($info['redirect_url']) && $info['redirect_url'] != $url) {
+			return $this->getHtmlFromUrl($info['redirect_url']);
+		}
+
+		curl_close($ch);
 		return $html;
 	}
 }

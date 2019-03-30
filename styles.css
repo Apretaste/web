@@ -48,4 +48,5 @@
 
 #reset-all-css {
 	all: initial;
+	word-wrap: break-word;
 }
