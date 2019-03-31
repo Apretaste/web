@@ -4,12 +4,12 @@
 	</div>
 
 	<% sites.forEach(site => { %>
-	<a href="#!" onclick="apretaste.send({'command':'WEB', data:{query:'<%= window.btoa(site.url) %>'}})">
-		<div class="col s6 m4 l3">
-			<div class="card-panel green">
-				<span class="white-text"><%= cut(site.title || site.url) %></span>
+		<a href="#!" onclick="apretaste.send({'command':'WEB', data:{query:'<%= site.url %>'}})">
+			<div class="col s6 m4 l3">
+				<div class="card-panel green">
+					<span class="white-text"><%= cut(site.title || site.url) %></span>
+				</div>
 			</div>
-		</div>
-	</a>
+		</a>
 	<% }) %>
 </div>
