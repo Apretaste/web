@@ -5,15 +5,24 @@
 .icon {
 	position: absolute;
 	top: 10px;
+	background-color: white;
 	cursor: pointer;
+}
+
+.send {
+	right: 0px;
 }
 
 .home {
 	right: 40px;
 }
 
-.send {
-	right: 0px;
+.back {
+	right: 80px;
+}
+
+.input-field {
+	margin: 0px;
 }
 
 .card-panel {

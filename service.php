@@ -136,7 +136,6 @@ class Service
 		$result = file_get_contents("https://api.cognitive.microsoft.com/bing/v7.0/search?mkt=es-US&q=" . urlencode($q), false, $context);
 		$json = json_decode($result);
 
-
 		// format the search results
 		$results = [];
 		if(isset($json->webPages)) {
@@ -203,8 +202,8 @@ class Service
 	private function compressPage($html, $url)
 	{
 		// create DOM element
-		$dom = new DOMDocument;
-		@$dom->loadHTML($html);
+		$dom = new DomDocument('1.0', 'UTF-8');
+		@$dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
 
 		// use only the BODY tag, we don't need the HEAD
 		$body = $dom->getElementsByTagName('body');
@@ -267,16 +266,13 @@ class Service
 			if(php::startsWith($src, '/')) $src = $urlDomain.$src;
 			elseif( ! php::startsWith($src, 'http')) $src = $urlDir.$src;
 
-			// encode to avoid JSON errors
-			$srcEncoded = base64_encode($src);
-
 			// convert the links to onclick
 			$node->setAttribute('href', "#!");
-			$node->setAttribute('onclick', "apretaste.send({command:'WEB', data:{query:'$srcEncoded'}})");
+			$node->setAttribute('onclick', "apretaste.send({command:'WEB', data:{query:'$src'}})");
 		}
 
 		// convert DOM back to HTML code
-		$html = $dom->saveHTML();
+		$html = utf8_decode($dom->saveHTML($dom->documentElement));
 
 		// remove all unwanted attribites
 		preg_match_all('/ style.*?=.*?".*?"/', $html, $matches);
