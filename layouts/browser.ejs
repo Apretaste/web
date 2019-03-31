@@ -1,27 +1,28 @@
 <!-- SEARCH BAR -->
-<div class="row">
-	<div class="col s12">
-		<div class="input-field">
-			<!-- Submit button -->
-			<i class="material-icons green-text small icon send" onclick="submit()">send</i>
-			<i class="material-icons grey-text small icon home" onclick="apretaste.send({'command':'WEB'})">home</i>
-			<i class="material-icons grey-text small icon back" onclick="history.go(-1)">keyboard_backspace</i>
+<div id="search">
+	<!-- home & send buttons -->
+	<i class="material-icons green-text small icon send" onclick="submit()">send</i>
+	<i class="material-icons grey-text small icon home" onclick="apretaste.send({'command':'WEB'})">home</i>
 
-			<!-- Input -->
-			<input id="query" placeholder="Inserte texto o p&aacute;gina a buscar" value="<%= query %>" type="text"/>
+	<!-- back button -->
+	<% if(query !== "") { %>
+		<i class="material-icons grey-text small icon back" onclick="history.go(-1)">keyboard_backspace</i>
+	<% } %>
 
-			<!-- Switch
-			<div class="switch">
-				<label>
-					Modo ahorro
-					<input id="save" type="checkbox" checked/>
-					<span class="lever"></span>
-				</label>  
-			</div>
-			-->
-		</div>
-	</div>
+	<!-- Input -->
+	<input id="query" placeholder="Inserte texto o p&aacute;gina a buscar" value="<%= query %>" type="text"/>
+
+	<!-- Switch
+	<div class="switch">
+		<label>
+			Modo ahorro
+			<input id="save" type="checkbox" checked/>
+			<span class="lever"></span>
+		</label>  
+	</div> -->
 </div>
 
 <!-- CONTENT -->
-{{APP_TEMPLATE_CODE}}
+<div id="content">
+	{{APP_TEMPLATE_CODE}}
+</div>

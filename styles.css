@@ -1,6 +1,19 @@
 /*
-	HOME SCREEN
+	LAYOUT
 */
+
+#search {
+	background-color: white;
+	width: 100%;
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	padding: 0px 10px 10px 10px;
+}
+
+#content {
+	margin-top: 70px;
+}
 
 .icon {
 	position: absolute;
@@ -10,7 +23,7 @@
 }
 
 .send {
-	right: 0px;
+	right: 10px;
 }
 
 .home {
@@ -18,12 +31,16 @@
 }
 
 .back {
-	right: 80px;
+	right: 70px;
 }
 
 .input-field {
 	margin: 0px;
 }
+
+/*
+	HOME SCREEN
+*/
 
 .card-panel {
 	padding: 5px;
