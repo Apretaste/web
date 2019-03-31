@@ -2,11 +2,18 @@
 	HOME SCREEN
 */
 
-.suffix {
+.icon {
 	position: absolute;
 	top: 10px;
-	right: 0px;
 	cursor: pointer;
+}
+
+.home {
+	right: 40px;
+}
+
+.send {
+	right: 0px;
 }
 
 .card-panel {

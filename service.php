@@ -12,7 +12,7 @@ class Service
 	public function _main (Request $request, Response $response)
 	{
 		// get data from the request
-		$query = isset($request->input->data->query) ? base64_decode($request->input->data->query) : "";
+		$query = isset($request->input->data->query) ? $request->input->data->query : "";
 		$compress = isset($request->input->data->save) ? $request->input->data->save : false;
 
 		//
@@ -133,8 +133,9 @@ class Service
 
 		// perform the request and get the JSON response
 		$context = stream_context_create(['http' => ['header' => "Ocp-Apim-Subscription-Key: $key\r\n", 'method' => 'GET']]);
-		$result = file_get_contents("https://api.cognitive.microsoft.com/bing/v7.0/search?q=" . urlencode($q), false, $context);
+		$result = file_get_contents("https://api.cognitive.microsoft.com/bing/v7.0/search?mkt=es-US&q=" . urlencode($q), false, $context);
 		$json = json_decode($result);
+
 
 		// format the search results
 		$results = [];
@@ -160,17 +161,17 @@ class Service
 		$domain_len = strlen($domain);
 		if ($domain_len < 3 OR $domain_len > 253) return FALSE;
 
-		//getting rid of HTTP/S just in case was passed.
+		// getting rid of HTTP/S just in case was passed.
 		if(stripos($domain, 'http://') === 0) $domain = substr($domain, 7); 
 		elseif(stripos($domain, 'https://') === 0) $domain = substr($domain, 8);
 
-		//we dont need the www either
+		// we dont need the www either
 		if(stripos($domain, 'www.') === 0) $domain = substr($domain, 4);
 
-		//Checking for a '.' at least, not in the beginning nor end, since http://.abcd. is reported valid
+		// Checking for a '.' at least, not in the beginning nor end, since http://.abcd. is reported valid
 		if(strpos($domain, '.') === FALSE OR $domain[strlen($domain)-1]=='.' OR $domain[0]=='.') return FALSE;
 
-		//now we use the FILTER_VALIDATE_URL, concatenating http so we can use it, and return BOOL
+		// now we use the FILTER_VALIDATE_URL, concatenating http so we can use it, and return BOOL
 		return (filter_var ('http://' . $domain, FILTER_VALIDATE_URL)===FALSE)? FALSE : TRUE;
 	}
 
