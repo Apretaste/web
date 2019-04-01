@@ -39,3 +39,8 @@ function submit() {
 function cut(text) {
 	return text.substring(0, 50);
 }
+
+// send info from the iframe
+function send(json) {
+	apretaste.send(json);
+}

@@ -212,44 +212,11 @@ class Service
 		@$dom->loadHTML($html);
 
 		// remove unwanted HTML tags
-		while (($r = $dom->getElementsByTagName("meta")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-		while (($r = $dom->getElementsByTagName("script")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-		while (($r = $dom->getElementsByTagName("link")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-		while (($r = $dom->getElementsByTagName("nav")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-		while (($r = $dom->getElementsByTagName("style")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-		while (($r = $dom->getElementsByTagName("iframe")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-		while (($r = $dom->getElementsByTagName("form")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-		while (($r = $dom->getElementsByTagName("input")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-		while (($r = $dom->getElementsByTagName("select")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-		while (($r = $dom->getElementsByTagName("textarea")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-		while (($r = $dom->getElementsByTagName("button")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-		while (($r = $dom->getElementsByTagName("svg")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
-		}
-		while (($r = $dom->getElementsByTagName("img")) && $r->length) {
-			$r->item(0)->parentNode->removeChild($r->item(0));
+		$tags = ['meta','script','link','nav','style','iframe','video','canvas','form','input','select','textarea','button','svg','img'];
+		foreach ($tags as $tag) {
+			while (($r = $dom->getElementsByTagName($tag)) && $r->length) {
+				$r->item(0)->parentNode->removeChild($r->item(0));
+			}
 		}
 
 		// get the domain and directory from the URL
@@ -268,31 +235,22 @@ class Service
 
 			// convert the links to onclick
 			$node->setAttribute('href', "#!");
-			$node->setAttribute('onclick', "apretaste.send({command:'WEB', data:{query:'$src'}})");
+			$node->setAttribute('onclick', "parent.send({command:'WEB', data:{query:'$src'}}); return false;");
 		}
 
 		// convert DOM back to HTML code
 		$html = utf8_decode($dom->saveHTML($dom->documentElement));
 
-		// remove all unwanted attribites
-		preg_match_all('/ style.*?=.*?".*?"/', $html, $matches);
-		foreach ($matches[0] as $match) {
-			$html = str_replace($match, "", $html);
-		}
-		preg_match_all('/ id.*?=.*?".*?"/', $html, $matches);
-		foreach ($matches[0] as $match) {
-			$html = str_replace($match, "", $html);
-		}
-		preg_match_all('/ class.*?=.*?".*?"/', $html, $matches);
-		foreach ($matches[0] as $match) {
-			$html = str_replace($match, "", $html);
-		}
-		preg_match_all('/ align.*?=.*?".*?"/', $html, $matches);
-		foreach ($matches[0] as $match) {
-			$html = str_replace($match, "", $html);
+		// remove all unwanted attributes
+		$attrs = ['style','id','class','align','target'];
+		foreach ($attrs as $attr) {
+			preg_match_all('/ '.$attr.'.*?=.*?".*?"/', $html, $matches);
+			foreach ($matches[0] as $match) {
+				$html = str_replace($match, "", $html);
+			}
 		}
 
-		return $this->minifyHTML($html);
+		return "<br/><br/>" . $this->minifyHTML($html);
 	}
 
 	/**
