@@ -110,7 +110,7 @@ class Service
 		if(strlen($html) < 500) return "";
 
 		// compress the page
-		$html = $this->compressPage($html, $url);
+		if($compress) $html = $this->compressPage($html, $url);
 
 		return $html;
 	}

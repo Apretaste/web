@@ -1,4 +1,12 @@
 /*
+	HELPERS
+*/
+
+.small {
+	font-size: small;
+}
+
+/*
 	LAYOUT
 */
 
@@ -31,8 +39,17 @@
 	right: 40px;
 }
 
-.back {
+.settings {
 	right: 70px;
+}
+
+.back {
+	right: 100px;
+}
+
+.menu-item {
+	border-top: 1px solid #C1C1C1; 
+	padding: 25px 0px;
 }
 
 /*

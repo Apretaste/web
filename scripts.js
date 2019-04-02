@@ -44,3 +44,11 @@ function cut(text) {
 function send(json) {
 	apretaste.send(json);
 }
+
+// open the settings modal
+function settings() {
+	// open the modal
+	var popup = document.getElementById('settings');
+	var modal = M.Modal.init(popup);
+	modal.open();
+}
