@@ -1,0 +1,20 @@
+<div class="row">
+	<div class="col s12">
+		<h1>Historial</h1>
+		<p>&Uacute;ltimas 20 p&aacute;ginas visitadas</p>
+
+		<% pages.forEach(function(page){ %>
+			<div class="box compact">
+				<a href="#!" onclick="apretaste.send({'command':'WEB', data:{query:'<%= page.url %>'}})">
+					<div class="title"><%= page.title %></div>
+					<div class="url"><%= page.url %></div>
+					<div class="date">Visitada el <%= formatDateTime(page.inserted) %></div>
+				</a>
+			</div>
+		<% }) %>
+	</div>
+</div>
+
+<div class="fixed-action-btn">
+	<a class="btn-floating btn-large waves-effect waves-light green" href="#!" onclick="apretaste.send({'command':'WEB'})"><i class="material-icons">arrow_back</i></a>
+</div>

@@ -6,6 +6,10 @@
 	font-size: small;
 }
 
+.hidden {
+	display: none;
+}
+
 /*
 	LAYOUT
 */
@@ -63,11 +67,15 @@
 }
 
 /*
-	GOOGLE SCREEN
+	GOOGLE & HISTORY SCREENS
 */
 
 .box {
 	padding: 30px 0px;
+}
+
+.compact {
+	padding: 10px 0px;
 }
 
 .box:nth-child(odd) {
@@ -87,6 +95,11 @@
 .note {
 	color: #545454;
 	font-size: 13px;
+}
+
+.date {
+	color: gray;
+	font-size: 10px;
 }
 
 /*

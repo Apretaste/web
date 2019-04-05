@@ -13,7 +13,10 @@ class Service
 	{
 		// get data from the request
 		$query = isset($request->input->data->query) ? $request->input->data->query : "";
-		$compress = isset($request->input->data->save) ? $request->input->data->save : false;
+
+		// get the user settings
+		Connection::query("INSERT IGNORE INTO _web_user_settings (id_person) VALUES ({$request->person->id})");
+		$settigns = Connection::query("SELECT save_mode FROM _web_user_settings WHERE id_person = {$request->person->id}")[0];
 
 		//
 		// show welcome message when query is empty
@@ -26,7 +29,7 @@ class Service
 			// create response
 			$response->setCache("day");
 			$response->setLayout('browser.ejs');
-			$response->setTemplate("home.ejs", ['query'=>'', 'sites'=>$sites]);
+			$response->setTemplate("home.ejs", ['query'=>'', 'settings'=>$settigns, 'sites'=>$sites]);
 			return $response;
 		}
 
@@ -39,18 +42,18 @@ class Service
 			if( ! php::startsWith($query, "http")) $query = "http://$query";
 
 			// get the html code of the page
-			$html = $this->browse($query, $compress);
+			$html = $this->browse($query, $request->person->id, $settigns->save_mode);
 
 			// if nothing was passed, let the user know
 			if(empty($html)) {
 				$response->setLayout('browser.ejs');
-				return $response->setTemplate('error.ejs', ["query"=>$query]);
+				return $response->setTemplate('error.ejs', ["query"=>$query, 'settings'=>$settigns]);
 			}
 
 			// create response
 			$response->setCache("month");
 			$response->setLayout('browser.ejs');
-			$response->setTemplate("web.ejs", ['query'=>$query, 'html'=>$html]);
+			$response->setTemplate("web.ejs", ['query'=>$query, 'settings'=>$settigns, 'html'=>$html]);
 			return $response;
 		}
 
@@ -64,13 +67,53 @@ class Service
 		// if nothing was passed, let the user know
 		if(empty($results)) {
 			$response->setLayout('browser.ejs');
-			return $response->setTemplate('error.ejs', ["query"=>$query]);
+			return $response->setTemplate('error.ejs', ["query"=>$query, 'settings'=>$settigns]);
 		}
 
 		// create the response
 		$response->setCache("year");
 		$response->setLayout('browser.ejs');
-		$response->setTemplate("google.ejs", ["query"=>$query, "results"=>$results]);
+		$response->setTemplate("google.ejs", ["query"=>$query, 'settings'=>$settigns, "results"=>$results]);
+	}
+
+	/**
+	 * Get the user's browsing history
+	 *
+	 * @author salvipascual
+	 * @param Request $request
+	 * @param Response $response
+	 */
+	public function _history (Request $request, Response $response)
+	{
+		// get the history for the person
+		$pages = Connection::query("
+			SELECT title, url, inserted 
+			FROM _web_history 
+			WHERE person_id = {$request->person->id}
+			ORDER BY inserted 
+			DESC LIMIT 20");
+
+		// create the response
+		$response->setTemplate("history.ejs", ["pages"=>$pages]);
+	}
+
+	/**
+	 * Change the user's save mode
+	 *
+	 * @author salvipascual
+	 * @param Request $request
+	 * @param Response $response
+	 */
+	public function _set (Request $request, Response $response)
+	{
+		// get save mode to change
+		$saveMode = empty($request->input->data->save_mode) ? 0 : 1;
+
+		// update the user's settings
+		Connection::query("
+			UPDATE _web_user_settings 
+			SET save_mode = $saveMode 
+			WHERE id_person = {$request->person->id}");
 	}
 
 	/**
@@ -78,10 +121,11 @@ class Service
 	 *
 	 * @author salvipascual
 	 * @param String $url
-	 * @param Boolean $compress
+	 * @param Integer $userId
+	 * @param Boolean $saveMode
 	 * @return String
 	 */
-	private function browse($url, $compress)
+	private function browse($url, $personId, $saveMode)
 	{
 		// chech if the page is in cache
 		$urlHash = md5($url);
@@ -91,6 +135,7 @@ class Service
 		if(file_exists($fileCache)) {
 			// load from cache
 			$html = file_get_contents($fileCache);
+			$title = $this->getTitle($html);
 
 			// increase cache counter
 			Connection::query("UPDATE _web_cache SET visits=visits+1 WHERE url_hash='$urlHash'");
@@ -109,8 +154,11 @@ class Service
 		// stop for NO-JS errors or empty DOCTYPES
 		if(strlen($html) < 500) return "";
 
+		// save the page as visited by the user
+		Connection::query("INSERT INTO _web_history (person_id, url, title) VALUES ($personId, '$url', '$title')");
+
 		// compress the page
-		if($compress) $html = $this->compressPage($html, $url);
+		if($saveMode) $html = $this->minify($html, $url);
 
 		return $html;
 	}
@@ -149,49 +197,6 @@ class Service
 	}
 
 	/**
-	 * Checks if a domain name is valid
-	 *
-	 * @param String $domain 
-	 * @return Boolean
-	 */
-	private function isValidDomain($domain)
-	{
-		// FILTER_VALIDATE_URL checks length but..why not? so we dont move forward with more expensive operations
-		$domain_len = strlen($domain);
-		if ($domain_len < 3 OR $domain_len > 253) return FALSE;
-
-		// getting rid of HTTP/S just in case was passed.
-		if(stripos($domain, 'http://') === 0) $domain = substr($domain, 7); 
-		elseif(stripos($domain, 'https://') === 0) $domain = substr($domain, 8);
-
-		// we dont need the www either
-		if(stripos($domain, 'www.') === 0) $domain = substr($domain, 4);
-
-		// Checking for a '.' at least, not in the beginning nor end, since http://.abcd. is reported valid
-		if(strpos($domain, '.') === FALSE OR $domain[strlen($domain)-1]=='.' OR $domain[0]=='.') return FALSE;
-
-		// now we use the FILTER_VALIDATE_URL, concatenating http so we can use it, and return BOOL
-		return (filter_var ('http://' . $domain, FILTER_VALIDATE_URL)===FALSE)? FALSE : TRUE;
-	}
-
-	/**
-	 * Get the title of an HTML page 
-	 *
-	 * @author salvipascual
-	 * @param String $html 
-	 * @return String
-	 */
-	private function getTitle($html)
-	{
-		// get the title using a regexp
-		$res = preg_match("/<title>(.*)<\/title>/siU", $html, $matches);
-		if ( ! $res) return ""; 
-
-		// remove EOL's and excessive whitespace.
-		return trim(preg_replace('/\s+/', ' ', $matches[1]));
-	}
-
-	/**
 	 * Get the title of an HTML page 
 	 *
 	 * @author salvipascual
@@ -199,7 +204,7 @@ class Service
 	 * @param String $url
 	 * @return String
 	 */
-	private function compressPage($html, $url)
+	private function minify($html, $url)
 	{
 		// create DOM element
 		$dom = new DomDocument('1.0', 'UTF-8');
@@ -250,25 +255,57 @@ class Service
 			}
 		}
 
-		return "<br/><br/>" . $this->minifyHTML($html);
-	}
-
-	/**
-	 * Remove white spaces and extra chars to minify an HTML
-	 *
-	 * @author salvipascual
-	 * @param String $html 
-	 * @return String
-	 */
-	function minifyHTML($html)
-	{
+		// remove white spaces and extra chars to minify the HTML
 		$search = [
 			'/\>[^\S ]+/s', // strip whitespaces after tags, except space
 			'/[^\S ]+\</s', // strip whitespaces before tags, except space
 			'/(\s)+/s', // shorten multiple whitespace sequences
 			'/<!--(.|\s)*?-->/'// Remove HTML comments
 		];
-		return preg_replace($search, ['>', '<', '\\1', ''], $html);
+		return "<br/><br/>" . preg_replace($search, ['>', '<', '\\1', ''], $html);
+	}
+
+	/**
+	 * Checks if a domain name is valid
+	 *
+	 * @param String $domain 
+	 * @return Boolean
+	 */
+	private function isValidDomain($domain)
+	{
+		// FILTER_VALIDATE_URL checks length but..why not? so we dont move forward with more expensive operations
+		$domain_len = strlen($domain);
+		if ($domain_len < 3 OR $domain_len > 253) return FALSE;
+
+		// getting rid of HTTP/S just in case was passed.
+		if(stripos($domain, 'http://') === 0) $domain = substr($domain, 7); 
+		elseif(stripos($domain, 'https://') === 0) $domain = substr($domain, 8);
+
+		// we dont need the www either
+		if(stripos($domain, 'www.') === 0) $domain = substr($domain, 4);
+
+		// Checking for a '.' at least, not in the beginning nor end, since http://.abcd. is reported valid
+		if(strpos($domain, '.') === FALSE OR $domain[strlen($domain)-1]=='.' OR $domain[0]=='.') return FALSE;
+
+		// now we use the FILTER_VALIDATE_URL, concatenating http so we can use it, and return BOOL
+		return (filter_var ('http://' . $domain, FILTER_VALIDATE_URL)===FALSE)? FALSE : TRUE;
+	}
+
+	/**
+	 * Get the title of an HTML page 
+	 *
+	 * @author salvipascual
+	 * @param String $html 
+	 * @return String
+	 */
+	private function getTitle($html)
+	{
+		// get the title using a regexp
+		$res = preg_match("/<title>(.*)<\/title>/siU", $html, $matches);
+		if ( ! $res) return ""; 
+
+		// remove EOL's and excessive whitespace.
+		return trim(preg_replace('/\s+/', ' ', $matches[1]));
 	}
 
 	/**
