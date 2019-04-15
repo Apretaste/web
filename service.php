@@ -214,6 +214,12 @@ class Service
 		$body = $dom->getElementsByTagName('body');
 		$body = $body->item(0);
 		$html = $dom->savehtml($body);
+
+		$tidy = new tidy();
+		$html = $tidy->repairString($html, [
+			'output-xhtml' => true,
+		], 'utf8');
+
 		@$dom->loadHTML($html);
 
 		// remove unwanted HTML tags
