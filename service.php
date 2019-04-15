@@ -206,6 +206,12 @@ class Service
 	 */
 	private function minify($html, $url)
 	{
+		$tidy = new tidy();
+
+		$html = $tidy->repairString($html, [
+			'output-xhtml' => true,
+		], 'utf8');
+
 		// create DOM element
 		$dom = new DomDocument('1.0', 'UTF-8');
 		@$dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
@@ -214,11 +220,6 @@ class Service
 		$body = $dom->getElementsByTagName('body');
 		$body = $body->item(0);
 		$html = $dom->savehtml($body);
-
-		$tidy = new tidy();
-		$html = $tidy->repairString($html, [
-			'output-xhtml' => true,
-		], 'utf8');
 
 		@$dom->loadHTML($html);
 
