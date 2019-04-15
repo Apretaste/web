@@ -155,6 +155,7 @@ class Service
 		if(strlen($html) < 500) return "";
 
 		// save the page as visited by the user
+		$title = Connection::escape($title);
 		Connection::query("INSERT INTO _web_history (person_id, url, title) VALUES ($personId, '$url', '$title')");
 
 		// compress the page
