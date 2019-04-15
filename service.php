@@ -214,9 +214,10 @@ class Service
 
 		// create DOM element
 		$dom = new DomDocument('1.0', 'UTF-8');
-		libxml_use_internal_errors(true);
+		$libxml_previous_state = libxml_use_internal_errors(true);
 		@$dom->loadHTML($html);
 		libxml_clear_errors();
+		libxml_use_internal_errors($libxml_previous_state);
 
 		// use only the BODY tag, we don't need the HEAD
 		$body = $dom->getElementsByTagName('body');
@@ -227,9 +228,10 @@ class Service
 			'output-xhtml' => true,
 		], 'utf8');
 
-		libxml_use_internal_errors(true);
+		$libxml_previous_state = libxml_use_internal_errors(true);
 		@$dom->loadHTML($html);
 		libxml_clear_errors();
+		libxml_use_internal_errors($libxml_previous_state);
 
 		// remove unwanted HTML tags
 		$tags = ['meta','script','link','nav','style','iframe','video','canvas','form','input','select','textarea','button','svg','img'];
