@@ -207,14 +207,14 @@ class Service
 	private function minify($html, $url)
 	{
 		$tidy = new tidy();
-
+		$html = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
 		$html = $tidy->repairString($html, [
 			'output-xhtml' => true,
 		], 'utf8');
 
 		// create DOM element
 		$dom = new DomDocument('1.0', 'UTF-8');
-		@$dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+		@$dom->loadHTML($html);
 
 		// use only the BODY tag, we don't need the HEAD
 		$body = $dom->getElementsByTagName('body');
@@ -224,7 +224,7 @@ class Service
 		$html = $tidy->repairString($html, [
 			'output-xhtml' => true,
 		], 'utf8');
-		
+
 		@$dom->loadHTML($html);
 
 		// remove unwanted HTML tags
