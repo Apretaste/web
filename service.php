@@ -147,6 +147,7 @@ class Service
 			$title = $this->getTitle($html);
 
 			// cache the page
+			$title = Connection::escape($title);
 			Connection::query("INSERT IGNORE INTO _web_cache (url_hash, url, title) VALUES ('$urlHash', '$url', '$title')");
 			file_put_contents($fileCache, $html);
 		}
