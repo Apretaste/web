@@ -946,16 +946,27 @@ class Service {
 			}
 		}
 
-		$nodes = $doc->getElementsByTagName("script");
-		while ($nodes->length > 0) {
-			$node = $nodes->item(0);
-			$this->domRemoveNode($node);
-		}
-
-		$nodes = $doc->getElementsByTagName("link");
-		while ($nodes->length > 0) {
-			$node = $nodes->item(0);
-			$this->domRemoveNode($node);
+		// remove unwanted HTML tags
+		$tags = [
+			'meta',
+			'script',
+			'link',
+			'style',
+			'iframe',
+			'video',
+			'canvas',
+			'form',
+			'input',
+			'select',
+			'textarea',
+			'button',
+			'svg',
+		];
+		
+		foreach ($tags as $tag) {
+			while (($r = $doc->getElementsByTagName($tag)) && $r->length) {
+				$r->item(0)->parentNode->removeChild($r->item(0));
+			}
 		}
 
 		$body = $doc->saveHTML();
