@@ -806,6 +806,9 @@ class Service {
 						$resources[$href] = $href;
 					}
 				}
+
+				$doc->removeChild($style);
+				
 			}
 		}
 
@@ -870,6 +873,8 @@ class Service {
 				}
 			}
 		}
+
+
 		// Fixing PRE
 
 		$pres = $doc->getElementsByTagName('pre');
@@ -952,8 +957,10 @@ class Service {
 			$body = str_replace('{' . $id . '}', $code, $body);
 		}
 
+		$body = strip_tags($body, 'div a h1 h2 h3 h4 table tr td th thead tfoot p pre ul li ol img');
 		$css = str_replace(['<![CDATA[',']]'],'',$css);
 		$body = "<style>$css</style>$body";
+
 		// Return results
 		return [
 			'title'       => $title,
