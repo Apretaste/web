@@ -609,7 +609,7 @@ class Service {
 
 	private function getHTTP($request, $url, $method = 'GET', $post = '', $agent = 'default', $config = []) {
 
-		require_once dirname(__FILE__) . '/lib/Emogrifier.php';
+		//require_once dirname(__FILE__) . '/lib/Emogrifier.php';
 		require_once dirname(__FILE__) . "/lib/CSSParser/CSSParser.php";
 		require_once dirname(__FILE__) . "/lib/Encoding.php";
 
