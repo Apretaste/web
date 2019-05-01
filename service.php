@@ -668,16 +668,9 @@ class Service {
 			$options['body'] = $post;
 		}
 
-		try {
-			// Build request
-			$http_request = $http_client->createRequest($method, $url/*, $options*/);
-		} catch (Exception $e) {
-			return FALSE;
-		}
-
 		// Send request
 		try {
-			$http_response = $http_client->send($http_request);
+			$http_response = $http_client->request($method,$url ,$options);
 		} catch (Exception $e) {
 			return FALSE;
 		}
