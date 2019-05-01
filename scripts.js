@@ -20,6 +20,9 @@ $(document).ready(function(){
 			$('#saveModeMessage').css('display', 'none');
 		}
 	}
+
+	if (typeof html != 'undefined')
+		$("#container-frame").setAttribute('srcdoc', html);
 });
 
 //
