@@ -626,7 +626,7 @@ class Service {
 
 	private function getHTTP($request, $url, $method = 'GET', $post = '', $agent = 'default', $config = []) {
 
-		//require_once dirname(__FILE__) . '/lib/Emogrifier.php';
+		require_once dirname(__FILE__) . '/lib/Emogrifier.php';
 		require_once dirname(__FILE__) . "/lib/CSSParser/CSSParser.php";
 		require_once dirname(__FILE__) . "/lib/Encoding.php";
 		require_once dirname(__FILE__) . "/lib/Fetcher.php";
@@ -875,16 +875,16 @@ class Service {
 
 		// Set style to each element in DOM, based on CSS stylesheets
 
-	//	$css = ForceUTF8\Encoding::toUTF8($css);
+		$css = ForceUTF8\Encoding::toUTF8($css);
 
-		//$emo = new Pelago\Emogrifier($body, $css);
-		//$emo->disableInvisibleNodeRemoval();
-/*
+		$emo = new Pelago\Emogrifier($body, $css);
+		$emo->disableInvisibleNodeRemoval();
+
 		try {
 			$body = @$emo->emogrify();
 		} catch (Exception $e) {
 		}
-*/
+
 		@$doc->loadHTML($body);
 
 		$nodeBody = $doc->getElementsByTagName('body');
@@ -1023,9 +1023,9 @@ class Service {
 		}
 
 	//	$body = strip_tags($body, 'div a h1 h2 h3 h4 table tr td th thead tfoot p pre ul li ol img');
-		$css = str_replace(['<![CDATA[',']]'],'',$css);
+		/*$css = str_replace(['<![CDATA[',']]'],'',$css);
 		$body = "<style>$css</style>$body";
-
+*/
 		// Return results
 		return [
 			'title'       => $title,
