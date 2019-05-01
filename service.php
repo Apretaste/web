@@ -635,8 +635,6 @@ class Service {
 				],
 			]);
 
-			$http_client->setDefaultOption('config/curl/' . CURLOPT_SSL_VERIFYPEER, FALSE);
-
 		} catch (Exception $e) {
 			return FALSE;
 		}
