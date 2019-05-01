@@ -807,8 +807,8 @@ class Service {
 					}
 				}
 
-				$doc->removeChild($style);
-				
+				//$doc->removeChild($style);
+
 			}
 		}
 
