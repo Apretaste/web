@@ -830,16 +830,16 @@ class Service {
 
 		// Set style to each element in DOM, based on CSS stylesheets
 
-		$css = ForceUTF8\Encoding::toUTF8($css);
+	//	$css = ForceUTF8\Encoding::toUTF8($css);
 
-		$emo = new Pelago\Emogrifier($body, $css);
-		$emo->disableInvisibleNodeRemoval();
-
+		//$emo = new Pelago\Emogrifier($body, $css);
+		//$emo->disableInvisibleNodeRemoval();
+/*
 		try {
 			$body = @$emo->emogrify();
 		} catch (Exception $e) {
 		}
-
+*/
 		@$doc->loadHTML($body);
 
 		$nodeBody = $doc->getElementsByTagName('body');
