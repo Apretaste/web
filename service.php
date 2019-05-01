@@ -845,7 +845,7 @@ class Service {
 		$nodeBody = $doc->getElementsByTagName('body');
 
 		$styleBody = @$nodeBody[0]->getAttribute('style');
-		$styleBody = $this->fixStyle($styleBody);
+		//$styleBody = $this->fixStyle($styleBody);
 		$styleBody = str_replace('"', "'", $styleBody);
 
 		$tags_to_fix = explode(' ', 'a p label div pre h1 h2 h3 h4 h5 button i b u li ol ul fieldset small legend form input span button nav table tr th td thead');
@@ -904,7 +904,7 @@ class Service {
 			if ($links->length > 0) {
 				foreach ($links as $link) {
 					$sty = $link->getAttribute('style');
-					$sty = $this->fixStyle($sty);
+					//$sty = $this->fixStyle($sty);
 					$link->setAttribute('style', $sty);
 					$link->setAttribute('class', '');
 				}
