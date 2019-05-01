@@ -847,7 +847,7 @@ class Service {
 				if (substr($src,0,2) == '//') $src = "http:".$src;
 				try{
 					$inliner = new Milanspv\InlineImages\Converter($src);
-					$image->setAttribute('src',$inliner->convert());
+					$image->setAttribute('src',utf8_encode($inliner->convert()));
 				} catch(Exception $e){
 					continue;
 				}
