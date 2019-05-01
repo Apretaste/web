@@ -22,7 +22,7 @@ $(document).ready(function(){
 	}
 
 	if (typeof html != 'undefined')
-		$("#container-frame").attr('srcdoc', html);
+		$("#container-frame").attr('srcdoc', content);
 });
 
 //

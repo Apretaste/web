@@ -78,7 +78,7 @@ class Service {
 			$response->setTemplate("web.ejs", [
 				'query'    => $query,
 				'settings' => $settigns,
-				'html'     => $html,
+				'content'     => $html,
 			]);
 			return $response;
 		}
