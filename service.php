@@ -843,8 +843,15 @@ class Service {
 
 		if ($images->length > 0) {
 			foreach ($images as $image) {
-				$inliner = new Milanspv\InlineImages\Converter($image->getAttribute('src'));
-				$image->setAttribute('src',$inliner->convert());
+				$src = $image->getAttribute('src');
+				if (substr($src,0,2) == '//') $src = "http:".$src;
+				try{
+					$inliner = new Milanspv\InlineImages\Converter($src);
+					$image->setAttribute('src',$inliner->convert());
+				} catch(Exception $e){
+					continue;
+				}
+
 			}
 		}
 
