@@ -607,6 +607,23 @@ class Service {
 		return $response;
 	}
 
+
+ private function domRemoveNode(&$node) {
+	$pnode = $node->parentNode;
+	$this->domRemoveChildren($node);
+	$pnode->removeChild($node);
+}
+
+ private function domRemoveChildren(&$node) {
+	while ($node->firstChild) {
+		while ($node->firstChild->firstChild) {
+			$this->domRemoveChildren($node->firstChild);
+		}
+
+		$node->removeChild($node->firstChild);
+	}
+}
+
 	private function getHTTP($request, $url, $method = 'GET', $post = '', $agent = 'default', $config = []) {
 
 		//require_once dirname(__FILE__) . '/lib/Emogrifier.php';
@@ -806,9 +823,6 @@ class Service {
 						$resources[$href] = $href;
 					}
 				}
-
-				//$doc->removeChild($style);
-
 			}
 		}
 
@@ -930,6 +944,18 @@ class Service {
 			} catch (Exception $e) {
 				continue;
 			}
+		}
+
+		$nodes = $doc->getElementsByTagName("script");
+		while ($nodes->length > 0) {
+			$node = $nodes->item(0);
+			$this->domRemoveNode($node);
+		}
+
+		$nodes = $doc->getElementsByTagName("link");
+		while ($nodes->length > 0) {
+			$node = $nodes->item(0);
+			$this->domRemoveNode($node);
 		}
 
 		$body = $doc->saveHTML();
