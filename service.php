@@ -570,21 +570,30 @@ class Service {
 		$settigns = Connection::query("SELECT save_mode FROM _web_user_settings WHERE id_person = {$request->person->id}")[0];
 
 		$query = "https://www.wikipedia.org";
-		$html = $this->getHTTP($request, $query, 'GET', '', $agent = 'default', $config = [
+		$info  = $this->getHTTP($request, $query, 'GET', '', $agent = 'default', $config = [
 			'default_user_agent'  => 'Mozilla/5.0 (Windows NT 6.2; rv:40.0) Gecko/20100101 Firefox/40.0',
 			'mobile_user_agent'   => 'Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16',
 			'max_attachment_size' => 400,
 			'cache_life_time'     => 100000,
 		]);
+		if ($info !== FALSE) {
+			// create response
+			$response->setCache("month");
+			$response->setLayout('browser.ejs');
+			$response->setTemplate("web.ejs", [
+				'query'    => $query,
+				'settings' => $settigns,
+				'html'     => $info['body'],
+			]);
+		}
+		else {
+			$response->setTemplate('error.ejs', [
+				"query"    => $query,
+				'settings' => $settigns,
+			]);
+		}
 
-		// create response
-		$response->setCache("month");
-		$response->setLayout('browser.ejs');
-		$response->setTemplate("web.ejs", [
-			'query'    => $query,
-			'settings' => $settigns,
-			'html'     => $html,
-		]);
+		return $response;
 	}
 
 	private function getHTTP($request, $url, $method = 'GET', $post = '', $agent = 'default', $config = []) {
@@ -664,30 +673,6 @@ class Service {
 		try {
 			$http_headers = $http_response->getHeaders();
 		} catch (Exception $e) {
-		}
-		if (isset($http_headers['Content-Type'])) {
-			$ct = $http_headers['Content-Type'][0];
-
-			// show image
-			if (substr($ct, 0, 6) == 'image/') {
-				// save image file
-				$filePath = $this->getTempDir() . "/files/image-" . md5($url) . ".jpg";
-				file_put_contents($filePath, $http_response->getBody());
-
-				// optimize the image
-				Utils::optimizeImage($filePath);
-
-				// save the image in the array for the template
-				$images = [
-					$filePath,
-				];
-
-				return [
-					'title'  => 'Imagen en la web',
-					'type'   => 'image',
-					'images' => $images,
-				];
-			}
 		}
 
 		$resources = [];
