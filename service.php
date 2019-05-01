@@ -799,7 +799,7 @@ class Service {
 
 					$href = $this->getFullHref($style->getAttribute('href'), $url);
 
-					$r = @file_get_contents($href);
+					$r = Utils::file_get_contents_curl($href);
 
 					if ($r !== FALSE) {
 						$css              .= $r;
