@@ -876,8 +876,8 @@ class Service {
 
 		$css = ForceUTF8\Encoding::toUTF8($css);
 
-		/*$standard_css = file_get_contents(__DIR__."/standards/chrome_webkit.css");
-		$emo = new Pelago\Emogrifier($body, "body,h1,h2,h3,h4,p,div,a,label,span{color:black;}" . $standard_css . $css);
+		//$standard_css = file_get_contents(__DIR__."/standards/chrome_webkit.css");
+		$emo = new Pelago\Emogrifier($body, /*"body,h1,h2,h3,h4,p,div,a,label,span{color:black;}" . $standard_css . */$css);
 		$emo->disableInvisibleNodeRemoval();
 
 		try {
@@ -885,7 +885,6 @@ class Service {
 		} catch (Exception $e) {
 		}
 
-*/
 		@$doc->loadHTML($body);
 
 		$nodeBody = $doc->getElementsByTagName('body');
@@ -1024,8 +1023,8 @@ class Service {
 		}
 
 	//	$body = strip_tags($body, 'div a h1 h2 h3 h4 table tr td th thead tfoot p pre ul li ol img');
-		$css = str_replace(['<![CDATA[',']]'],'',$css);
-		$body = "<style>$css</style>$body";
+		//$css = str_replace(['<![CDATA[',']]'],'',$css);
+		//$body = "<style>$css</style>$body";
 
 		// Return results
 		return [
