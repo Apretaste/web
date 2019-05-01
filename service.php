@@ -50,7 +50,18 @@ class Service {
 			}
 
 			// get the html code of the page
-			$html = $this->browse($query, $request->person->id, $settigns->save_mode);
+			//$html = $this->browse($query, $request->person->id, $settigns->save_mode);
+			$info = $this->getHTTP($request, $query, 'GET', '', $agent = 'default', $config = [
+				'default_user_agent'  => 'Mozilla/5.0 (Windows NT 6.2; rv:40.0) Gecko/20100101 Firefox/40.0',
+				'mobile_user_agent'   => 'Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16',
+				'max_attachment_size' => 400,
+				'cache_life_time'     => 100000,
+			]);
+
+			$html = '';
+			if ($info !== FALSE) {
+				$html = $info['body'];
+			}
 
 			// if nothing was passed, let the user know
 			if (empty($html)) {
@@ -597,6 +608,11 @@ class Service {
 	}
 
 	private function getHTTP($request, $url, $method = 'GET', $post = '', $agent = 'default', $config = []) {
+
+		require_once dirname(__FILE__) . '/lib/Emogrifier.php';
+		require_once dirname(__FILE__) . "/lib/CSSParser/CSSParser.php";
+		require_once dirname(__FILE__) . "/lib/Encoding.php";
+
 		// clear $url
 		$url = str_replace("///", "/", $url);
 		$url = str_replace("//", "/", $url);
