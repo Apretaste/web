@@ -670,7 +670,7 @@ class Service {
 
 		try {
 			// Build request
-			$http_request = $http_client->createRequest($method, $url, $options);
+			$http_request = $http_client->createRequest($method, $url/*, $options*/);
 		} catch (Exception $e) {
 			return FALSE;
 		}
