@@ -21,8 +21,8 @@ $(document).ready(function(){
 		}
 	}
 
-/*	if (typeof html != 'undefined')
-		$("#container-frame").attr('srcdoc', content);*/
+	if (typeof html != 'undefined')
+		$("#container-frame").attr('srcdoc', content);
 });
 
 //
