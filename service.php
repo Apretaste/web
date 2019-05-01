@@ -1,16 +1,18 @@
 <?php
 
-class Service
-{
+class Service {
+
+	public $base = NULL;
+
 	/**
 	 * Opens the browser screen
 	 *
 	 * @author salvipascual
+	 *
 	 * @param Request $request
 	 * @param Response $response
 	 */
-	public function _main (Request $request, Response $response)
-	{
+	public function _main(Request $request, Response $response) {
 		// get data from the request
 		$query = isset($request->input->data->query) ? $request->input->data->query : "";
 
@@ -29,7 +31,11 @@ class Service
 			// create response
 			$response->setCache("day");
 			$response->setLayout('browser.ejs');
-			$response->setTemplate("home.ejs", ['query'=>'', 'settings'=>$settigns, 'sites'=>$sites]);
+			$response->setTemplate("home.ejs", [
+				'query'    => '',
+				'settings' => $settigns,
+				'sites'    => $sites,
+			]);
 			return $response;
 		}
 
@@ -39,21 +45,30 @@ class Service
 
 		if ($this->isValidDomain($query)) {
 			// add the scheeme if not passed
-			if( ! php::startsWith($query, "http")) $query = "http://$query";
+			if (!php::startsWith($query, "http")) {
+				$query = "http://$query";
+			}
 
 			// get the html code of the page
 			$html = $this->browse($query, $request->person->id, $settigns->save_mode);
 
 			// if nothing was passed, let the user know
-			if(empty($html)) {
+			if (empty($html)) {
 				$response->setLayout('browser.ejs');
-				return $response->setTemplate('error.ejs', ["query"=>$query, 'settings'=>$settigns]);
+				return $response->setTemplate('error.ejs', [
+					"query"    => $query,
+					'settings' => $settigns,
+				]);
 			}
 
 			// create response
 			$response->setCache("month");
 			$response->setLayout('browser.ejs');
-			$response->setTemplate("web.ejs", ['query'=>$query, 'settings'=>$settigns, 'html'=>$html]);
+			$response->setTemplate("web.ejs", [
+				'query'    => $query,
+				'settings' => $settigns,
+				'html'     => $html,
+			]);
 			return $response;
 		}
 
@@ -65,26 +80,33 @@ class Service
 		$results = $this->search($query);
 
 		// if nothing was passed, let the user know
-		if(empty($results)) {
+		if (empty($results)) {
 			$response->setLayout('browser.ejs');
-			return $response->setTemplate('error.ejs', ["query"=>$query, 'settings'=>$settigns]);
+			return $response->setTemplate('error.ejs', [
+				"query"    => $query,
+				'settings' => $settigns,
+			]);
 		}
 
 		// create the response
 		$response->setCache("year");
 		$response->setLayout('browser.ejs');
-		$response->setTemplate("google.ejs", ["query"=>$query, 'settings'=>$settigns, "results"=>$results]);
+		$response->setTemplate("google.ejs", [
+			"query"    => $query,
+			'settings' => $settigns,
+			"results"  => $results,
+		]);
 	}
 
 	/**
 	 * Get the user's browsing history
 	 *
 	 * @author salvipascual
+	 *
 	 * @param Request $request
 	 * @param Response $response
 	 */
-	public function _history (Request $request, Response $response)
-	{
+	public function _history(Request $request, Response $response) {
 		// get the history for the person
 		$pages = Connection::query("
 			SELECT title, url, inserted 
@@ -94,18 +116,18 @@ class Service
 			DESC LIMIT 20");
 
 		// create the response
-		$response->setTemplate("history.ejs", ["pages"=>$pages]);
+		$response->setTemplate("history.ejs", ["pages" => $pages]);
 	}
 
 	/**
 	 * Change the user's save mode
 	 *
 	 * @author salvipascual
+	 *
 	 * @param Request $request
 	 * @param Response $response
 	 */
-	public function _set (Request $request, Response $response)
-	{
+	public function _set(Request $request, Response $response) {
 		// get save mode to change
 		$saveMode = empty($request->input->data->save_mode) ? 0 : 1;
 
@@ -120,21 +142,22 @@ class Service
 	 * Download the latest version of the website
 	 *
 	 * @author salvipascual
+	 *
 	 * @param String $url
 	 * @param Integer $userId
 	 * @param Boolean $saveMode
+	 *
 	 * @return String
 	 */
-	private function browse($url, $personId, $saveMode)
-	{
+	private function browse($url, $personId, $saveMode) {
 		// chech if the page is in cache
-		$urlHash = md5($url);
+		$urlHash   = md5($url);
 		$fileCache = Utils::getTempDir() . "/web/$urlHash.html";
 
 		// load the page from cache
-		if(file_exists($fileCache)) {
+		if (file_exists($fileCache)) {
 			// load from cache
-			$html = file_get_contents($fileCache);
+			$html  = file_get_contents($fileCache);
 			$title = $this->getTitle($html);
 
 			// increase cache counter
@@ -143,7 +166,7 @@ class Service
 		// load the page online
 		else {
 			// get the page from online
-			$html = $this->getHtmlFromUrl($url);
+			$html  = $this->getHtmlFromUrl($url);
 			$title = $this->getTitle($html);
 
 			// cache the page
@@ -153,14 +176,18 @@ class Service
 		}
 
 		// stop for NO-JS errors or empty DOCTYPES
-		if(strlen($html) < 500) return "";
+		if (strlen($html) < 500) {
+			return "";
+		}
 
 		// save the page as visited by the user
 		$title = Connection::escape($title, 250);
 		Connection::query("INSERT INTO _web_history (person_id, url, title) VALUES ($personId, '$url', '$title')");
 
 		// compress the page
-		if($saveMode) $html = $this->minify($html, $url);
+		if ($saveMode) {
+			$html = $this->minify($html, $url);
+		}
 
 		return $html;
 	}
@@ -169,29 +196,41 @@ class Service
 	 * Search for a term in Bing and return formatted results
 	 *
 	 * @author kumahacker
+	 *
 	 * @param String $q
+	 *
 	 * @return Array
 	 */
-	private function search($q)
-	{
+	private function search($q) {
 		// do not allow empty queries
-		if(empty($q)) return [];
+		if (empty($q)) {
+			return [];
+		}
 
 		// get the Bing key
-		$di = \Phalcon\DI\FactoryDefault::getDefault();
+		$di  = \Phalcon\DI\FactoryDefault::getDefault();
 		$key = $di->get('config')['bing']['key1'];
 
 		// perform the request and get the JSON response
-		$context = stream_context_create(['http' => ['header' => "Ocp-Apim-Subscription-Key: $key\r\n", 'method' => 'GET']]);
-		$result = file_get_contents("https://api.cognitive.microsoft.com/bing/v7.0/search?mkt=es-US&q=" . urlencode($q), false, $context);
-		$json = json_decode($result);
+		$context = stream_context_create([
+			'http' => [
+				'header' => "Ocp-Apim-Subscription-Key: $key\r\n",
+				'method' => 'GET',
+			],
+		]);
+		$result  = file_get_contents("https://api.cognitive.microsoft.com/bing/v7.0/search?mkt=es-US&q=" . urlencode($q), FALSE, $context);
+		$json    = json_decode($result);
 
 		// format the search results
 		$results = [];
-		if(isset($json->webPages)) {
-			foreach($json->webPages->value as $v) {
-				$v = get_object_vars($v);
-				$results[] = ["title" => $v['name'], 'url' => $v['url'], 'note' => $v['snippet']];
+		if (isset($json->webPages)) {
+			foreach ($json->webPages->value as $v) {
+				$v         = get_object_vars($v);
+				$results[] = [
+					"title" => $v['name'],
+					'url'   => $v['url'],
+					'note'  => $v['snippet'],
+				];
 			}
 		}
 
@@ -199,24 +238,25 @@ class Service
 	}
 
 	/**
-	 * Get the title of an HTML page 
+	 * Get the title of an HTML page
 	 *
 	 * @author salvipascual
-	 * @param String $html 
+	 *
+	 * @param String $html
 	 * @param String $url
+	 *
 	 * @return String
 	 */
-	private function minify($html, $url)
-	{
+	private function minify($html, $url) {
 		$tidy = new tidy();
 		$html = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
 		$html = $tidy->repairString($html, [
-			'output-xhtml' => true,
+			'output-xhtml' => TRUE,
 		], 'utf8');
 
 		// create DOM element
-		$dom = new DomDocument('1.0', 'UTF-8');
-		$libxml_previous_state = libxml_use_internal_errors(true);
+		$dom                   = new DomDocument('1.0', 'UTF-8');
+		$libxml_previous_state = libxml_use_internal_errors(TRUE);
 		@$dom->loadHTML($html);
 		libxml_clear_errors();
 		libxml_use_internal_errors($libxml_previous_state);
@@ -227,16 +267,32 @@ class Service
 		$html = $dom->savehtml($body);
 
 		$html = $tidy->repairString($html, [
-			'output-xhtml' => true,
+			'output-xhtml' => TRUE,
 		], 'utf8');
 
-		$libxml_previous_state = libxml_use_internal_errors(true);
+		$libxml_previous_state = libxml_use_internal_errors(TRUE);
 		@$dom->loadHTML($html);
 		libxml_clear_errors();
 		libxml_use_internal_errors($libxml_previous_state);
 
 		// remove unwanted HTML tags
-		$tags = ['meta','script','link','nav','style','iframe','video','canvas','form','input','select','textarea','button','svg','img'];
+		$tags = [
+			'meta',
+			'script',
+			'link',
+			'nav',
+			'style',
+			'iframe',
+			'video',
+			'canvas',
+			'form',
+			'input',
+			'select',
+			'textarea',
+			'button',
+			'svg',
+			'img',
+		];
 		foreach ($tags as $tag) {
 			while (($r = $dom->getElementsByTagName($tag)) && $r->length) {
 				$r->item(0)->parentNode->removeChild($r->item(0));
@@ -244,9 +300,9 @@ class Service
 		}
 
 		// get the domain and directory from the URL
-		$urlp = parse_url($url);
-		$urlDomain = $urlp['scheme'].'://'.$urlp['host'];
-		$urlDir = dirname($url).'/';
+		$urlp      = parse_url($url);
+		$urlDomain = $urlp['scheme'] . '://' . $urlp['host'];
+		$urlDir    = dirname($url) . '/';
 
 		// replace <a> by onclick
 		foreach ($dom->getElementsByTagName('a') as $node) {
@@ -254,8 +310,12 @@ class Service
 			$src = trim($node->getAttribute("href"));
 
 			// complete relative links
-			if(php::startsWith($src, '/')) $src = $urlDomain.$src;
-			elseif( ! php::startsWith($src, 'http')) $src = $urlDir.$src;
+			if (php::startsWith($src, '/')) {
+				$src = $urlDomain . $src;
+			}
+			elseif (!php::startsWith($src, 'http')) {
+				$src = $urlDir . $src;
+			}
 
 			// convert the links to onclick
 			$node->setAttribute('href', "#!");
@@ -266,9 +326,9 @@ class Service
 		$html = utf8_decode($dom->saveHTML($dom->documentElement));
 
 		// remove all unwanted attributes
-		$attrs = ['style','id','class','align','target'];
+		$attrs = ['style', 'id', 'class', 'align', 'target'];
 		foreach ($attrs as $attr) {
-			preg_match_all('/ '.$attr.'.*?=.*?".*?"/', $html, $matches);
+			preg_match_all('/ ' . $attr . '.*?=.*?".*?"/', $html, $matches);
 			foreach ($matches[0] as $match) {
 				$html = str_replace($match, "", $html);
 			}
@@ -287,41 +347,54 @@ class Service
 	/**
 	 * Checks if a domain name is valid
 	 *
-	 * @param String $domain 
+	 * @param String $domain
+	 *
 	 * @return Boolean
 	 */
-	private function isValidDomain($domain)
-	{
+	private function isValidDomain($domain) {
 		// FILTER_VALIDATE_URL checks length but..why not? so we dont move forward with more expensive operations
 		$domain_len = strlen($domain);
-		if ($domain_len < 3 OR $domain_len > 253) return FALSE;
+		if ($domain_len < 3 OR $domain_len > 253) {
+			return FALSE;
+		}
 
 		// getting rid of HTTP/S just in case was passed.
-		if(stripos($domain, 'http://') === 0) $domain = substr($domain, 7); 
-		elseif(stripos($domain, 'https://') === 0) $domain = substr($domain, 8);
+		if (stripos($domain, 'http://') === 0) {
+			$domain = substr($domain, 7);
+		}
+		elseif (stripos($domain, 'https://') === 0) {
+			$domain = substr($domain, 8);
+		}
 
 		// we dont need the www either
-		if(stripos($domain, 'www.') === 0) $domain = substr($domain, 4);
+		if (stripos($domain, 'www.') === 0) {
+			$domain = substr($domain, 4);
+		}
 
 		// Checking for a '.' at least, not in the beginning nor end, since http://.abcd. is reported valid
-		if(strpos($domain, '.') === FALSE OR $domain[strlen($domain)-1]=='.' OR $domain[0]=='.') return FALSE;
+		if (strpos($domain, '.') === FALSE OR $domain[strlen($domain) - 1] == '.' OR $domain[0] == '.') {
+			return FALSE;
+		}
 
 		// now we use the FILTER_VALIDATE_URL, concatenating http so we can use it, and return BOOL
-		return (filter_var ('http://' . $domain, FILTER_VALIDATE_URL)===FALSE)? FALSE : TRUE;
+		return (filter_var('http://' . $domain, FILTER_VALIDATE_URL) === FALSE) ? FALSE : TRUE;
 	}
 
 	/**
-	 * Get the title of an HTML page 
+	 * Get the title of an HTML page
 	 *
 	 * @author salvipascual
-	 * @param String $html 
+	 *
+	 * @param String $html
+	 *
 	 * @return String
 	 */
-	private function getTitle($html)
-	{
+	private function getTitle($html) {
 		// get the title using a regexp
 		$res = preg_match("/<title>(.*)<\/title>/siU", $html, $matches);
-		if ( ! $res) return ""; 
+		if (!$res) {
+			return "";
+		}
 
 		// remove EOL's and excessive whitespace.
 		return trim(preg_replace('/\s+/', ' ', $matches[1]));
@@ -331,31 +404,36 @@ class Service
 	 * Gets the HTML code for a website
 	 *
 	 * @author salvipascual
-	 * @param String $html 
+	 *
+	 * @param String $html
+	 *
 	 * @return String
 	 */
-	private function getHtmlFromUrl($url)
-	{
+	private function getHtmlFromUrl($url) {
 		// prepare URL for CURL
 		$url = str_replace("//", "/", $url);
-		$url = str_replace("http:/","http://", $url);
-		$url = str_replace("https:/","https://", $url);
+		$url = str_replace("http:/", "http://", $url);
+		$url = str_replace("https:/", "https://", $url);
 
 		// prepare headers for CURL
 		$headers = [];
-		foreach ([
-			"Cache-Control" => "max-age=0",
-			"Origin" => "{$url}",
-			"User-Agent" => "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36",
-			"Content-Type" => "application/x-www-form-urlencoded"
-		] as $key => $val) $headers[] = "$key: $val";
+		foreach (
+			[
+				"Cache-Control" => "max-age=0",
+				"Origin"        => "{$url}",
+				"User-Agent"    => "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36",
+				"Content-Type"  => "application/x-www-form-urlencoded",
+			] as $key => $val
+		) {
+			$headers[] = "$key: $val";
+		}
 
 		// start CURL
 		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url); 
+		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
 		$html = curl_exec($ch);
 		$info = curl_getinfo($ch);
 
@@ -366,5 +444,530 @@ class Service
 
 		curl_close($ch);
 		return $html;
+	}
+
+	private function getTempDir() {
+		$di      = \Phalcon\DI\FactoryDefault::getDefault();
+		$wwwroot = $di->get('path')['root'];
+		return $wwwroot . "/temp";
+	}
+
+	/**
+	 * Return TRUE if url is a HTTP or HTTPS
+	 *
+	 * @param string $url
+	 *
+	 * @return boolean
+	 */
+	private function isHttpURL($url) {
+		$url = trim(strtolower($url));
+		return strtolower(substr($url, 0, 7)) === 'http://' || strtolower(substr($url, 0, 8)) === 'https://';
+	}
+
+	/**
+	 * Return TRUE if url is a FTP
+	 *
+	 * @param string $url
+	 *
+	 * @return boolean
+	 */
+	private function isFtpURL($url) {
+		$url = trim(strtolower($url));
+		return strtolower(substr($url, 0, 6)) === 'ftp://';
+	}
+
+
+	/**
+	 * Return full HREF
+	 */
+	private function getFullHref($href, $url) {
+		$href = trim($href);
+		if ($href == '' || $href == 'javascript(0);' || $href == 'javascript:void(0);') {
+			return $url;
+		}
+		if (strtolower(substr($href, 0, 2) == '//')) {
+			return 'http:' . $href;
+		}
+		if (strtolower(substr($href, 0, 1) == '?')) {
+			if (!is_null($this->base)) {
+				return $this->base . $href;
+			}
+			return $url . $href;
+		}
+
+		$base = '';
+
+		if ($this->isHttpURL($href) || $this->isFtpURL($href)) {
+			return $href;
+		}
+
+		if (!$this->isHttpURL($url) && !$this->isFtpURL($url)) {
+			$url = 'http://' . $url;
+		}
+
+		$url = trim($url);
+
+		if (substr($url, strlen($url) - 1, 1) == "/") {
+			$url = substr($url, 0, strlen($url) - 1);
+		}
+
+		$parts = parse_url($url);
+
+		if (!is_null($this->base)) {
+			$base = $this->base;
+		}
+		else {
+			if ($parts === FALSE) {
+				return $href;
+			}
+
+			if (!isset($parts['port'])) {
+				$parts['port'] = 80;
+			}
+
+			$base = $parts['scheme'] . "://" . $parts['host'] . ":" . $parts['port'] . "/";
+
+			if (isset($parts['path'])) {
+				$p = $parts['path'];
+
+				$exts = explode(' ', 'html htm php5 exe php jsp asp aspx jsf py');
+
+				foreach ($exts as $ext) {
+					if (stripos($p, '.' . $ext) !== FALSE) {
+						$base .= dirname($p) . "/";
+						break;
+					}
+				}
+			}
+		}
+
+		return $base . $href;
+	}
+
+
+	/**
+	 * Repair HREF/SRC attributes
+	 *
+	 * @param DOMElement $node
+	 * @param string $url
+	 *
+	 * @return string
+	 */
+	private function convertLink(DOMElement &$node, string $url) {
+		$href = $node->getAttribute('href');
+		if (trim($href) == '') {
+			return '';
+		}
+
+		$new_href  = '#!';
+		$full_href = $this->getFullHref($href, $url);
+		$node->setAttribute('onclick', "apretaste.send({command: 'web', data: {query: '$full_href'}});");
+		return $new_href;
+	}
+
+	function _http(Request $request, Response $response) {
+
+		$settigns = Connection::query("SELECT save_mode FROM _web_user_settings WHERE id_person = {$request->person->id}")[0];
+
+		$query = "https://www.wikipedia.org";
+		$html = $this->getHTTP($request, $query, 'GET', '', $agent = 'default', $config = [
+			'default_user_agent'  => 'Mozilla/5.0 (Windows NT 6.2; rv:40.0) Gecko/20100101 Firefox/40.0',
+			'mobile_user_agent'   => 'Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16',
+			'max_attachment_size' => 400,
+			'cache_life_time'     => 100000,
+		]);
+
+		// create response
+		$response->setCache("month");
+		$response->setLayout('browser.ejs');
+		$response->setTemplate("web.ejs", [
+			'query'    => $query,
+			'settings' => $settigns,
+			'html'     => $html,
+		]);
+	}
+
+	private function getHTTP($request, $url, $method = 'GET', $post = '', $agent = 'default', $config = []) {
+		// clear $url
+		$url = str_replace("///", "/", $url);
+		$url = str_replace("//", "/", $url);
+		$url = str_replace("http:/", "http://", $url);
+		$url = str_replace("https:/", "https://", $url);
+
+		if (substr($url, 0, 2) == '//') {
+			$url = 'http:' . $url;
+		}
+		else if (substr($url, 0, 1) == '/') {
+			$url = 'http:/' . $url;
+		}
+
+		try {
+			// Create http client
+			$http_client = new GuzzleHttp\Client([
+				'cookies'  => TRUE,
+				'defaults' => [
+					'verify' => FALSE,
+				],
+			]);
+
+			$http_client->setDefaultOption('config/curl/' . CURLOPT_SSL_VERIFYPEER, FALSE);
+
+		} catch (Exception $e) {
+			return FALSE;
+		}
+
+		// Build POST
+		if ($post != '') {
+			$arr  = explode("&", $post);
+			$post = [];
+			foreach ($arr as $v) {
+				$arr2 = explode('=', $v);
+				if (!isset($arr2[1])) {
+					$arr2[1] = '';
+				}
+				$post[$arr2[0]] = $arr2[1];
+			}
+		}
+		else {
+			$post = [];
+		}
+
+		$cookies                    = FALSE;
+		$options['allow_redirects'] = TRUE;
+
+		// Set user agent
+		$options['headers'] = [
+			'user-agent' => $config[$agent . '_user_agent'],
+		];
+
+		// Sending POST/GET data
+		if ($method == 'POST') {
+			$options['body'] = $post;
+		}
+
+		try {
+			// Build request
+			$http_request = $http_client->createRequest($method, $url, $options);
+		} catch (Exception $e) {
+			return FALSE;
+		}
+
+		// Send request
+		try {
+			$http_response = $http_client->send($http_request);
+		} catch (Exception $e) {
+			return FALSE;
+		}
+
+		$http_headers = [];
+		// Gedt HTTP headers
+		try {
+			$http_headers = $http_response->getHeaders();
+		} catch (Exception $e) {
+		}
+		if (isset($http_headers['Content-Type'])) {
+			$ct = $http_headers['Content-Type'][0];
+
+			// show image
+			if (substr($ct, 0, 6) == 'image/') {
+				// save image file
+				$filePath = $this->getTempDir() . "/files/image-" . md5($url) . ".jpg";
+				file_put_contents($filePath, $http_response->getBody());
+
+				// optimize the image
+				Utils::optimizeImage($filePath);
+
+				// save the image in the array for the template
+				$images = [
+					$filePath,
+				];
+
+				return [
+					'title'  => 'Imagen en la web',
+					'type'   => 'image',
+					'images' => $images,
+				];
+			}
+		}
+
+		$resources = [];
+
+		// Getting HTML page
+		$css  = '';
+		$body = $http_response->getBody();
+
+		// Force to UTF8 encoding
+		$body = ForceUTF8\Encoding::toUTF8($body);
+
+		$tidy = new tidy();
+		$body = $tidy->repairString($body, [
+			'output-xhtml' => TRUE,
+		], 'utf8');
+
+		$doc = new DOMDocument();
+
+		@$doc->loadHTML($body);
+
+		// Getting BASE of URLs (base tag)
+		$base = $doc->getElementsByTagName('base');
+		if ($base->length > 0) {
+			$this->base = $base->item(0)->getAttribute('href');
+		}
+
+		// Get the page's title
+
+		$title = $doc->getElementsByTagName('title');
+
+		if ($title->length > 0) {
+			$title = $title->item(0)->nodeValue;
+		}
+		else {
+			$title = $url;
+		}
+
+		// Convert links to mailto
+		$links = $doc->getElementsByTagName('a');
+
+		if ($links->length > 0) {
+			foreach ($links as $link) {
+				$href = $link->getAttribute('href');
+
+				if ($href == FALSE || empty($href)) {
+					$href = $link->getAttribute('data-src');
+				}
+
+				if (substr($href, 0, 1) == '#') {
+					$link->setAttribute('href', '');
+					continue;
+				}
+				if (strtolower(substr($href, 0, 7)) == 'mailto:') {
+					continue;
+				}
+
+				$this->convertLink($link, $url);
+			}
+		}
+
+		// Array for store replacements of DOM's nodes
+		$replace    = [];
+		$in_the_end = [];
+
+		// Get scripts
+		$scripts = $doc->getElementsByTagName('script');
+
+		if ($scripts->length > 0) {
+			foreach ($scripts as $script) {
+				$src = $this->getFullHref($script->getAttribute('src'), $url);
+
+				if ($src != $url) {
+					$resources[$src] = $src;
+				}
+			}
+		}
+
+		// Get CSS stylesheets
+		$styles = $doc->getElementsByTagName('style');
+
+		if ($styles->length > 0) {
+			foreach ($styles as $style) {
+				$css .= $style->nodeValue;
+			}
+		}
+
+		// Remove some tags
+		$tags = [
+			'script',
+			'style',
+			'noscript',
+		];
+
+		foreach ($tags as $tag) {
+			$elements = $doc->getElementsByTagName($tag);
+
+			if ($elements->length > 0) {
+				foreach ($elements as $element) {
+
+					$replace[] = [
+						'oldnode' => $element,
+						'newnode' => NULL,
+						'parent'  => $element->parentNode,
+					];
+				}
+			}
+		}
+
+		// Getting LINK tags and retrieve CSS
+		$styles = $doc->getElementsByTagName('link');
+
+		if ($styles->length > 0) {
+			foreach ($styles as $style) {
+
+				// Is CSS?
+				if ($style->getAttribute('rel') == 'stylesheet') {
+
+					$href = $this->getFullHref($style->getAttribute('href'), $url);
+
+					$r = @file_get_contents($href);
+
+					if ($r !== FALSE) {
+						$css              .= $r;
+						$resources[$href] = $href;
+					}
+				}
+			}
+		}
+
+		// Replace/remove childs
+
+		foreach ($replace as $rep) {
+			try {
+				if (is_null($rep['newnode'])) {
+					$rep['parent']->removeChild($rep['oldnode']);
+				}
+				else {
+					$rep['parent']->replaceChild($rep['newnode'], $rep['oldnode']);
+				}
+			} catch (Exception $e) {
+				continue;
+			}
+		}
+
+		$replace = [];
+
+		$body = $doc->saveHTML();
+
+		// Set style to each element in DOM, based on CSS stylesheets
+
+		$css = ForceUTF8\Encoding::toUTF8($css);
+
+		$emo = new Pelago\Emogrifier($body, $css);
+		$emo->disableInvisibleNodeRemoval();
+
+		try {
+			$body = @$emo->emogrify();
+		} catch (Exception $e) {
+		}
+
+		@$doc->loadHTML($body);
+
+		$nodeBody = $doc->getElementsByTagName('body');
+
+		$styleBody = @$nodeBody[0]->getAttribute('style');
+		$styleBody = $this->fixStyle($styleBody);
+		$styleBody = str_replace('"', "'", $styleBody);
+
+		$tags_to_fix = explode(' ', 'a p label div pre h1 h2 h3 h4 h5 button i b u li ol ul fieldset small legend form input span button nav table tr th td thead');
+
+		foreach ($tags_to_fix as $tagname) {
+			if (array_search($tagname, [
+					'input',
+				]) !== FALSE) {
+				continue;
+			}
+
+			$tags = $doc->getElementsByTagName($tagname);
+			if ($tags->length > 0) {
+				foreach ($tags as $tag) {
+					if (trim($tag->nodeValue) == '' && $tag->childNodes->length == 0) {
+						$replace[] = [
+							'parent'  => $tag->parentNode,
+							'oldnode' => $tag,
+							'newnode' => NULL,
+						];
+					}
+				}
+			}
+		}
+		// Fixing PRE
+
+		$pres = $doc->getElementsByTagName('pre');
+
+		if ($pres->length > 0) {
+			foreach ($pres as $pre) {
+				$lines = explode('\n', $pre->nodeValue);
+
+				$newpre = $doc->createElement('div');
+				foreach ($lines as $line) {
+					$line = str_replace(' ', '&nbsp;', $line);
+					$newp = $doc->createElement('p', $line);
+					$newp->setAttribute('style', 'line-height:13px;');
+					$newpre->appendChild($newp);
+				}
+
+				$newpre->setAttribute('style', $pre->getAttribute('style') . ';font-size: 13px;font-family:Courier;');
+				$replace[] = [
+					'parent'  => $pre->parentNode,
+					'oldnode' => $pre,
+					'newnode' => $newpre,
+				];
+			}
+		}
+
+		// Fixing styles
+
+		foreach ($tags_to_fix as $tag) {
+
+			$links = $doc->getElementsByTagName($tag);
+
+			if ($links->length > 0) {
+				foreach ($links as $link) {
+					$sty = $link->getAttribute('style');
+					$sty = $this->fixStyle($sty);
+					$link->setAttribute('style', $sty);
+					$link->setAttribute('class', '');
+				}
+			}
+		}
+
+
+		// Replace/remove childs [again]
+
+		foreach ($replace as $rep) {
+			try {
+				if (is_null($rep['newnode'])) {
+					$rep['parent']->removeChild($rep['oldnode']);
+				}
+				else {
+					$rep['parent']->replaceChild($rep['newnode'], $rep['oldnode']);
+				}
+			} catch (Exception $e) {
+				continue;
+			}
+		}
+
+		$body = $doc->saveHTML();
+
+		// Get only the body
+		$body = $tidy->repairString($body, [
+			'output-xhtml'   => TRUE,
+			'show-body-only' => TRUE,
+		], 'utf8');
+
+		$body = str_ireplace('class=""', '', $body);
+		$body = str_ireplace('style=""', '', $body);
+
+		// Compress the returning code
+		$body = preg_replace('/\s+/S', " ", $body);
+
+		// Cut large pages
+		$limit       = 1024 * 400; // 400KB
+		$body_length = strlen($body);
+		if ($body_length > $limit) {
+			$body = substr($body, 0, $limit);
+		}
+
+		foreach ($in_the_end as $id => $code) {
+			$body = str_replace('{' . $id . '}', $code, $body);
+		}
+
+		// Return results
+		return [
+			'title'       => $title,
+			'body'        => $body,
+			'style'       => $styleBody,
+			'body_length' => number_format($body_length / 1024, 2),
+			'url'         => $url,
+			'resources'   => $resources,
+		];
 	}
 }
