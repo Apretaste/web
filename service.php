@@ -820,10 +820,15 @@ class Service {
 
 					if ($r !== FALSE) {
 
-						$oParser = new CSSParser();
-						$oDoc = $oParser->parseString($r);
-						$aDeclarations = $oDoc->getAllDeclarationBlocks();
-						$r = CSSDocument::mergeDeclarations($aDeclarations);
+						try {
+							$oParser = new CSSParser();
+							$oDoc = $oParser->parseString($r);
+							$aDeclarations = $oDoc->getAllDeclarationBlocks();
+							$r = CSSDocument::mergeDeclarations($aDeclarations);
+						} catch(Exception $e)
+						{
+							$r = '';
+						}
 
 						$css              .= $r;
 						$resources[$href] = $href;
