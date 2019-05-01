@@ -629,6 +629,8 @@ class Service {
 		//require_once dirname(__FILE__) . '/lib/Emogrifier.php';
 		require_once dirname(__FILE__) . "/lib/CSSParser/CSSParser.php";
 		require_once dirname(__FILE__) . "/lib/Encoding.php";
+		require_once dirname(__FILE__) . "/lib/Fetcher.php";
+		require_once dirname(__FILE__) . "/lib/Converter.php";
 
 		// clear $url
 		$url = str_replace("///", "/", $url);
@@ -837,8 +839,16 @@ class Service {
 			}
 		}
 
-		// Replace/remove childs
+		$images = $doc->getElementsByTagName('img');
 
+		if ($images->length > 0) {
+			foreach ($images as $image) {
+				$inliner = new Milanspv\InlineImages\Converter($image->getAttribute('src'));
+				$image->setAttribute('src',$inliner->convert());
+			}
+		}
+
+		// Replace/remove childs
 		foreach ($replace as $rep) {
 			try {
 				if (is_null($rep['newnode'])) {
