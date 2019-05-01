@@ -952,6 +952,7 @@ class Service {
 			$body = str_replace('{' . $id . '}', $code, $body);
 		}
 
+		$body = str_replace("</head>", "<style>$css</style></head>", $body);
 		// Return results
 		return [
 			'title'       => $title,
