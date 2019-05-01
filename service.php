@@ -1,5 +1,7 @@
 <?php
 
+include __DIR__."/vendor/autoload.php";
+
 class Service {
 
 	public $base = NULL;
@@ -625,8 +627,6 @@ class Service {
 }
 
 	private function getHTTP($request, $url, $method = 'GET', $post = '', $agent = 'default', $config = []) {
-
-		require_once dirname(__FILE__) . '/lib/Emogrifier.php';
 		require_once dirname(__FILE__) . "/lib/CSSParser/CSSParser.php";
 		require_once dirname(__FILE__) . "/lib/Encoding.php";
 		require_once dirname(__FILE__) . "/lib/Fetcher.php";
@@ -870,14 +870,14 @@ class Service {
 		}
 
 		$replace = [];
-
 		$body = $doc->saveHTML();
 
 		// Set style to each element in DOM, based on CSS stylesheets
 
 		$css = ForceUTF8\Encoding::toUTF8($css);
 
-		$emo = new Pelago\Emogrifier($body, $css);
+		$standard_css = file_get_contents(__DIR__."/standards/chrome_webkit.css");
+		$emo = new Pelago\Emogrifier($body, $standard_css . $css);
 		$emo->disableInvisibleNodeRemoval();
 
 		try {

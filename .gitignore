@@ -4,3 +4,4 @@ nbproject/*
 .project
 *~
 *.zip
+vendor/*

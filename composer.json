@@ -1,0 +1,7 @@
+{
+	"require": {
+		"pelago/emogrifier": "^2.1"
+	},
+	"minimum-stability": "dev",
+	"prefer-stable": true
+}
