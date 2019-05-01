@@ -819,6 +819,12 @@ class Service {
 					$r = Utils::file_get_contents_curl($href);
 
 					if ($r !== FALSE) {
+
+						$oParser = new CSSParser();
+						$oDoc = $oParser->parseString($r);
+						$aDeclarations = $oDoc->getAllDeclarationBlocks();
+						$r = CSSDocument::mergeDeclarations($aDeclarations);
+
 						$css              .= $r;
 						$resources[$href] = $href;
 					}
@@ -962,7 +968,7 @@ class Service {
 			'button',
 			'svg',
 		];
-		
+
 		foreach ($tags as $tag) {
 			while (($r = $doc->getElementsByTagName($tag)) && $r->length) {
 				$r->item(0)->parentNode->removeChild($r->item(0));
