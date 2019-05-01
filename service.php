@@ -29,7 +29,7 @@ class Service {
 			$sites = Connection::query("SELECT url, title FROM _web_cache ORDER BY visits DESC LIMIT 14");
 
 			// create response
-			$response->setCache("day");
+			//$response->setCache("day");
 			$response->setLayout('browser.ejs');
 			$response->setTemplate("home.ejs", [
 				'query'    => '',
@@ -73,7 +73,7 @@ class Service {
 			}
 
 			// create response
-			$response->setCache("month");
+			//$response->setCache("month");
 			$response->setLayout('browser.ejs');
 			$response->setTemplate("web.ejs", [
 				'query'    => $query,
@@ -100,7 +100,7 @@ class Service {
 		}
 
 		// create the response
-		$response->setCache("year");
+		//$response->setCache("year");
 		$response->setLayout('browser.ejs');
 		$response->setTemplate("google.ejs", [
 			"query"    => $query,
