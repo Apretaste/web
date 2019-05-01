@@ -952,6 +952,7 @@ class Service {
 			$body = str_replace('{' . $id . '}', $code, $body);
 		}
 
+		$css = str_replace(['<![CDATA[',']]'],'',$css);
 		$body = "<style>$css</style>$body";
 		// Return results
 		return [
