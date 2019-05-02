@@ -846,6 +846,9 @@ class Service {
 		if ($images->length > 0) {
 			foreach ($images as $image) {
 				$src = $image->getAttribute('src');
+				if ($src == '')
+					$src = @$image->getAttribute('srcset');
+
 				$result = '';
 				try {
 					$inliner = new Milanspv\InlineImages\Converter($this->getFullHref($src, $url));
