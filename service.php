@@ -822,7 +822,7 @@ class Service {
 
 					if ($r !== FALSE) {
 
-						try {
+						/*try {
 							$oParser = new CSSParser();
 							$oDoc = $oParser->parseString($r);
 							$aDeclarations = $oDoc->getAllDeclarationBlocks();
@@ -831,7 +831,7 @@ class Service {
 						{
 							$r = '';
 						}
-
+*/
 						$css              .= $r;
 						$resources[$href] = $href;
 					}
@@ -878,7 +878,7 @@ class Service {
 
 		$standard_css = file_get_contents(__DIR__."/standards/html5-boilerplate.css");
 		$css = str_replace(["/*>*/","/**/", '<![CDATA[',']]'], "", $css);
-		$emo = new Pelago\Emogrifier($body, $standard_css . "\n". $css);
+		$emo = new Pelago\Emogrifier($body, $standard_css /*. "\n". $css*/);
 		$emo->disableInvisibleNodeRemoval();
 
 		try {
@@ -985,7 +985,6 @@ class Service {
 			'iframe',
 			'video',
 			'canvas',
-			'form',
 			'input',
 			'select',
 			'textarea',
