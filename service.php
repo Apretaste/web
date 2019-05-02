@@ -846,8 +846,6 @@ class Service {
 		if ($images->length > 0) {
 			foreach ($images as $image) {
 				$src = $image->getAttribute('src');
-				if ($src == '')
-					$src = @$image->getAttribute('srcset');
 
 				$result = '';
 				try {
@@ -864,7 +862,7 @@ class Service {
 					}
 				}
 
-				$image->setAttribute('src', $result);
+				if ($result!='') $image->setAttribute('src', $result);
 			}
 		}
 
