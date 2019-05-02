@@ -846,13 +846,7 @@ class Service {
 		if ($images->length > 0) {
 			foreach ($images as $image) {
 				$src = $image->getAttribute('src');
-				if (substr($src, 0, 2) == '//') {
-					$src = "http:" . $src;
-				}
-				if (substr($src,0,4)!="http")
-				{
-					$src = $this->getFullHref($src, $url);
-				}
+				$src = $this->getFullHref($src, $url);
 				try {
 					$inliner = new Milanspv\InlineImages\Converter($src);
 					$image->setAttribute('src', utf8_encode($inliner->convert()));
