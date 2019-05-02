@@ -82,6 +82,7 @@ class Service {
 				'settings' => $settigns,
 				'content'     => $html,
 			]);
+
 			return $response;
 		}
 
@@ -878,7 +879,7 @@ class Service {
 
 		$standard_css = file_get_contents(__DIR__."/standards/html5-boilerplate.css");
 		$css = str_replace(["/*>*/","/**/", '<![CDATA[',']]'], "", $css);
-		$emo = new Pelago\Emogrifier($body, $standard_css /*. "\n". $css*/);
+		$emo = new Pelago\Emogrifier($body, $css);
 		$emo->disableInvisibleNodeRemoval();
 
 		try {

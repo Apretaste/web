@@ -21,8 +21,14 @@ $(document).ready(function(){
 		}
 	}
 
-	/*if (typeof content != 'undefined')
-		$("#container-frame").attr('srcdoc', '<html><head></head><body>' + content + '</body>');*/
+	if (typeof content != 'undefined')
+	{
+    var st = document.createElement("STYLE");
+    st.nodeValue = content;
+    $("#container-frame").attr('srcdoc', '<html><head></head><body>' + content + '</body>');
+    frames['container-frame'].document.head.appendchild(st);
+  }
+
 });
 
 //
