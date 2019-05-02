@@ -989,10 +989,6 @@ class Service {
 			'iframe',
 			'video',
 			'canvas',
-			'input',
-			'select',
-			'textarea',
-			'button',
 			'svg',
 		];
 
