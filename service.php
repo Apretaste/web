@@ -846,12 +846,16 @@ class Service {
 		if ($images->length > 0) {
 			foreach ($images as $image) {
 				$src = $image->getAttribute('src');
-				$src = $this->getFullHref($src, $url);
 				try {
-					$inliner = new Milanspv\InlineImages\Converter($src);
+					$inliner = new Milanspv\InlineImages\Converter($this->getFullHref($src, $url));
 					$image->setAttribute('src', utf8_encode($inliner->convert()));
 				} catch (Exception $e) {
-					continue;
+					try {
+						$inliner = new Milanspv\InlineImages\Converter($url . "/" . $src);
+						$image->setAttribute('src', utf8_encode($inliner->convert()));
+					} catch (Exception $e) {
+						continue;
+					}
 				}
 
 			}
