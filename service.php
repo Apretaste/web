@@ -878,7 +878,7 @@ class Service {
 
 		$standard_css = file_get_contents(__DIR__."/standards/firefox.css");
 		$css = str_replace(["/*>*/","/**/", '<![CDATA[',']]'], "", $css);
-		$emo = new Pelago\Emogrifier($body, /*"body,h1,h2,h3,h4,p,div,a,label,span,nav,ul,li,ol{color:black;}" .*/ $standard_css . "\n". $css);
+		$emo = new Pelago\Emogrifier($body, /*"body,h1,h2,h3,h4,p,div,a,label,span,nav,ul,li,ol{color:black;}" . $standard_css . "\n".*/ $css);
 		$emo->disableInvisibleNodeRemoval();
 
 		try {
