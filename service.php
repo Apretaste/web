@@ -876,8 +876,8 @@ class Service {
 
 		$css = ForceUTF8\Encoding::toUTF8($css);
 
-		//$standard_css = file_get_contents(__DIR__."/standards/chrome_webkit.css");
-		$emo = new Pelago\Emogrifier($body, /*"body,h1,h2,h3,h4,p,div,a,label,span{color:black;}" . $standard_css . */$css);
+		$standard_css = file_get_contents(__DIR__."/standards/chrome_webkit.css");
+		$emo = new Pelago\Emogrifier($body, "body,h1,h2,h3,h4,p,div,a,label,span{color:black;}" . $standard_css . $css);
 		$emo->disableInvisibleNodeRemoval();
 
 		try {
