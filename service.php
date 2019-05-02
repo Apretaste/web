@@ -574,7 +574,7 @@ class Service {
 
 		$new_href  = '#!';
 		$full_href = $this->getFullHref($href, $url);
-		$node->setAttribute('onclick', "parent.send({command: 'web', data: {query: '$full_href'}});");
+		$node->setAttribute('onclick', "apretaste.send({command: 'web', data: {query: '$full_href'}});");
 		return $new_href;
 	}
 
@@ -878,7 +878,7 @@ class Service {
 
 		$standard_css = file_get_contents(__DIR__."/standards/firefox.css");
 		$css = str_replace(["/*>*/","/**/", '<![CDATA[',']]'], "", $css);
-		$emo = new Pelago\Emogrifier($body, /*"body,h1,h2,h3,h4,p,div,a,label,span,nav,ul,li,ol{color:black;}" . $standard_css . "\n".*/ $css);
+		$emo = new Pelago\Emogrifier($body, "body,h1,h2,h3,h4,p,div,a,label,span,nav,ul,li,ol{color:black;}\n" . $standard_css . "\n". $css);
 		$emo->disableInvisibleNodeRemoval();
 
 		try {
