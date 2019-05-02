@@ -846,18 +846,22 @@ class Service {
 		if ($images->length > 0) {
 			foreach ($images as $image) {
 				$src = $image->getAttribute('src');
+				$result = '';
 				try {
 					$inliner = new Milanspv\InlineImages\Converter($this->getFullHref($src, $url));
-					$image->setAttribute('src', utf8_encode($inliner->convert()));
+					$result = utf8_encode($inliner->convert());
 				} catch (Exception $e) {
+				}
+
+				if ($result = '' || $result == 'data:;base64,'){
 					try {
 						$inliner = new Milanspv\InlineImages\Converter($url . "/" . $src);
-						$image->setAttribute('src', utf8_encode($inliner->convert()));
+						$result = utf8_encode($inliner->convert());
 					} catch (Exception $e) {
-						continue;
 					}
 				}
 
+				$image->setAttribute('src', $result);
 			}
 		}
 
