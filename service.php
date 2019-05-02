@@ -1,6 +1,6 @@
 <?php
 
-include __DIR__."/vendor/autoload.php";
+include __DIR__ . "/vendor/autoload.php";
 
 class Service {
 
@@ -80,7 +80,8 @@ class Service {
 			$response->setTemplate("web.ejs", [
 				'query'    => $query,
 				'settings' => $settigns,
-				'content'     => $html,
+				'content'  => $html,
+				'style'    => $info['css'],
 			]);
 
 			return $response;
@@ -611,21 +612,21 @@ class Service {
 	}
 
 
- private function domRemoveNode(&$node) {
-	$pnode = $node->parentNode;
-	$this->domRemoveChildren($node);
-	$pnode->removeChild($node);
-}
-
- private function domRemoveChildren(&$node) {
-	while ($node->firstChild) {
-		while ($node->firstChild->firstChild) {
-			$this->domRemoveChildren($node->firstChild);
-		}
-
-		$node->removeChild($node->firstChild);
+	private function domRemoveNode(&$node) {
+		$pnode = $node->parentNode;
+		$this->domRemoveChildren($node);
+		$pnode->removeChild($node);
 	}
-}
+
+	private function domRemoveChildren(&$node) {
+		while ($node->firstChild) {
+			while ($node->firstChild->firstChild) {
+				$this->domRemoveChildren($node->firstChild);
+			}
+
+			$node->removeChild($node->firstChild);
+		}
+	}
 
 	private function getHTTP($request, $url, $method = 'GET', $post = '', $agent = 'default', $config = []) {
 		require_once dirname(__FILE__) . "/lib/CSSParser/CSSParser.php";
@@ -690,7 +691,7 @@ class Service {
 
 		// Send request
 		try {
-			$http_response = $http_client->request($method,$url ,$options);
+			$http_response = $http_client->request($method, $url, $options);
 		} catch (Exception $e) {
 			return FALSE;
 		}
@@ -845,11 +846,13 @@ class Service {
 		if ($images->length > 0) {
 			foreach ($images as $image) {
 				$src = $image->getAttribute('src');
-				if (substr($src,0,2) == '//') $src = "http:".$src;
-				try{
+				if (substr($src, 0, 2) == '//') {
+					$src = "http:" . $src;
+				}
+				try {
 					$inliner = new Milanspv\InlineImages\Converter($src);
-					$image->setAttribute('src',utf8_encode($inliner->convert()));
-				} catch(Exception $e){
+					$image->setAttribute('src', utf8_encode($inliner->convert()));
+				} catch (Exception $e) {
 					continue;
 				}
 
@@ -871,15 +874,15 @@ class Service {
 		}
 
 		$replace = [];
-		$body = $doc->saveHTML();
+		$body    = $doc->saveHTML();
 
 		// Set style to each element in DOM, based on CSS stylesheets
 
 		$css = ForceUTF8\Encoding::toUTF8($css);
 
-		$standard_css = file_get_contents(__DIR__."/standards/html5-boilerplate.css");
-		$css = str_replace(["/*>*/","/**/", '<![CDATA[',']]'], "", $css);
-		$emo = new Pelago\Emogrifier($body, $css);
+		$standard_css = file_get_contents(__DIR__ . "/standards/html5-boilerplate.css");
+		$css          = str_replace(["/*>*/", "/**/", '<![CDATA[', ']]'], "", $css);
+		$emo          = new Pelago\Emogrifier($body, $css);
 		$emo->disableInvisibleNodeRemoval();
 
 		try {
@@ -1024,7 +1027,7 @@ class Service {
 			$body = str_replace('{' . $id . '}', $code, $body);
 		}
 
-	//	$body = strip_tags($body, 'div a h1 h2 h3 h4 table tr td th thead tfoot p pre ul li ol img');
+		//	$body = strip_tags($body, 'div a h1 h2 h3 h4 table tr td th thead tfoot p pre ul li ol img');
 		//$css = str_replace(['<![CDATA[',']]'],'',$css);
 		//$body = "<style>$css</style>$body";
 
@@ -1036,6 +1039,7 @@ class Service {
 			'body_length' => number_format($body_length / 1024, 2),
 			'url'         => $url,
 			'resources'   => $resources,
+			'css'         => $css,
 		];
 	}
 }

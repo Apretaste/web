@@ -24,7 +24,7 @@ $(document).ready(function(){
 	if (typeof content != 'undefined')
 	{
     var st = document.createElement("STYLE");
-    st.nodeValue = content;
+    st.nodeValue = style;
     $("#container-frame").attr('srcdoc', '<html><head></head><body>' + content + '</body>');
     frames['container-frame'].document.head.appendchild(st);
   }
