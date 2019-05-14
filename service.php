@@ -750,7 +750,10 @@ class Service {
 				}
 
 				if (substr($href, 0, 1) == '#') {
-					$link->setAttribute('href', '');
+					//$link->setAttribute('href', '');
+					$link->addAttribute('anchor-link', $href);
+					$link->addAttribute('onclick', 'this.href=\''.$href.'\'');
+					$link->setAttribute('class', $link->getAttribute('class').' anchor-link');
 					continue;
 				}
 				if (strtolower(substr($href, 0, 7)) == 'mailto:') {
