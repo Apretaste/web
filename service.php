@@ -750,9 +750,9 @@ class Service {
 				}
 
 				if (substr($href, 0, 1) == '#') {
-					//$link->setAttribute('href', '');
+					$link->setAttribute('href', '#!');
 					$link->setAttribute('anchor-link', $href);
-					$link->setAttribute('onclick', 'this.href=\''.$href.'\'');
+					$link->setAttribute('onclick', 'return false;');
 					$link->setAttribute('class', $link->getAttribute('class').' anchor-link');
 					continue;
 				}
