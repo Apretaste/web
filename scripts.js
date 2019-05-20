@@ -11,8 +11,8 @@ $(document).ready(function(){
 	});
 
 	// check/uncheck the save mode switch
-	if(settings != undefined) {
-		if(settings.save_mode == 1) {
+	if(settings !== undefined) {
+		if(settings.save_mode === 1) {
 			$('#saveMode').prop("checked", true);
 			$('#saveModeMessage').css('display', 'block');
 		} else {
@@ -21,7 +21,7 @@ $(document).ready(function(){
 		}
 	}
 
-	if (typeof content != 'undefined')
+	if (content !== 'undefined')
 	{
     $("#container-frame").attr('srcdoc', '<html><head></head><body>' + content + '</body>');
   }
