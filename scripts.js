@@ -21,10 +21,10 @@ $(document).ready(function(){
 		}
 	}
 
-	if (content !== 'undefined')
+	/*if (content !== 'undefined')
 	{
     $("#container-frame").attr('srcdoc', '<html><head></head><body>' + content + '</body>');
-  }
+  }*/
 
 });
 
