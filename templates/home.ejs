@@ -3,7 +3,7 @@
 		<h1>M&aacute;s visitados</h1>
 	</div>
 
-	<% sites.forEach(site => { %>
+	<% sites.forEach(function(site){ %>
 		<a href="#!" onclick="apretaste.send({'command':'WEB', data:{query:'<%= site.url %>'}})">
 			<div class="col s6 m4 l3">
 				<div class="card-panel green">
