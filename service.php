@@ -1,7 +1,5 @@
 <?php
 
-include __DIR__ . "/vendor/autoload.php";
-
 class Service {
 
 	public $base = NULL;
