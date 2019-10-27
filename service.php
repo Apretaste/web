@@ -82,6 +82,8 @@ class Service {
 				'style'    => $info['css'],
 			]);
 
+			Challenges::complete("open-web-page", $request->person->id);
+
 			return $response;
 		}
 
@@ -109,6 +111,8 @@ class Service {
 			'settings' => $settigns,
 			"results"  => $results,
 		]);
+
+		Challenges::complete("search-in-the-web", $request->person->id);
 	}
 
 	/**
