@@ -94,6 +94,8 @@ class Service {
 		// get the search results
 		$results = $this->search($query);
 
+		Challenges::complete("search-in-the-web", $request->person->id);
+
 		// if nothing was passed, let the user know
 		if (empty($results)) {
 			$response->setLayout('browser.ejs');
@@ -111,8 +113,6 @@ class Service {
 			'settings' => $settigns,
 			"results"  => $results,
 		]);
-
-		Challenges::complete("search-in-the-web", $request->person->id);
 	}
 
 	/**
