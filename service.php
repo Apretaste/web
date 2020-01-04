@@ -469,12 +469,6 @@ class Service {
 		return $html;
 	}
 
-	private function getTempDir() {
-		$di      = \Phalcon\DI\FactoryDefault::getDefault();
-		$wwwroot = $di->get('path')['root'];
-		return $wwwroot . "/temp";
-	}
-
 	/**
 	 * Return TRUE if url is a HTTP or HTTPS
 	 *
