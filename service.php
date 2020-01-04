@@ -1,5 +1,10 @@
 <?php
 
+use Apretaste\Request;
+use Apretaste\Response;
+use Framework\Database;
+use Apretaste\Challenges;
+
 class Service {
 
 	public $base = NULL;
@@ -7,18 +12,19 @@ class Service {
 	/**
 	 * Opens the browser screen
 	 *
-	 * @author salvipascual
-	 *
-	 * @param Request $request
+	 * @param Request  $request
 	 * @param Response $response
+	 *
+	 * @throws \Framework\Alert
+	 * @author salvipascual
 	 */
-	public function _main(Request $request, Response $response) {
+	public function _main(Request $request, Response &$response) {
 		// get data from the request
 		$query = isset($request->input->data->query) ? $request->input->data->query : "";
 
 		// get the user settings
-		Connection::query("INSERT IGNORE INTO _web_user_settings (id_person) VALUES ({$request->person->id})");
-		$settigns = Connection::query("SELECT save_mode FROM _web_user_settings WHERE id_person = {$request->person->id}")[0];
+		Database::query("INSERT IGNORE INTO _web_user_settings (id_person) VALUES ({$request->person->id})");
+		$settigns = Database::query("SELECT save_mode FROM _web_user_settings WHERE id_person = {$request->person->id}")[0];
 
 		//
 		// show welcome message when query is empty
@@ -26,7 +32,7 @@ class Service {
 
 		if (empty($query)) {
 			// get visits
-			$sites = Connection::query("SELECT url, title FROM _web_cache ORDER BY visits DESC LIMIT 14");
+			$sites = Database::query("SELECT url, title FROM _web_cache ORDER BY visits DESC LIMIT 14");
 
 			// create response
 			//$response->setCache("day");
@@ -36,7 +42,7 @@ class Service {
 				'settings' => $settigns,
 				'sites'    => $sites,
 			]);
-			return $response;
+			return;
 		}
 
 		//
@@ -66,10 +72,11 @@ class Service {
 			// if nothing was passed, let the user know
 			if (empty($html)) {
 				$response->setLayout('browser.ejs');
-				return $response->setTemplate('error.ejs', [
+				$response->setTemplate('error.ejs', [
 					"query"    => $query,
 					'settings' => $settigns,
 				]);
+				return;
 			}
 
 			// create response
@@ -84,7 +91,7 @@ class Service {
 
 			Challenges::complete("open-web-page", $request->person->id);
 
-			return $response;
+			return;
 		}
 
 		//
@@ -99,10 +106,11 @@ class Service {
 		// if nothing was passed, let the user know
 		if (empty($results)) {
 			$response->setLayout('browser.ejs');
-			return $response->setTemplate('error.ejs', [
+			$response->setTemplate('error.ejs', [
 				"query"    => $query,
 				'settings' => $settigns,
 			]);
+			return;
 		}
 
 		// create the response
@@ -123,9 +131,9 @@ class Service {
 	 * @param Request $request
 	 * @param Response $response
 	 */
-	public function _history(Request $request, Response $response) {
+	public function _history(Request $request, Response &$response) {
 		// get the history for the person
-		$pages = Connection::query("
+		$pages = Database::query("
 			SELECT title, url, inserted 
 			FROM _web_history 
 			WHERE person_id = {$request->person->id}
@@ -144,12 +152,12 @@ class Service {
 	 * @param Request $request
 	 * @param Response $response
 	 */
-	public function _set(Request $request, Response $response) {
+	public function _set(Request $request, Response &$response) {
 		// get save mode to change
 		$saveMode = empty($request->input->data->save_mode) ? 0 : 1;
 
 		// update the user's settings
-		Connection::query("
+		Database::query("
 			UPDATE _web_user_settings 
 			SET save_mode = $saveMode 
 			WHERE id_person = {$request->person->id}");
@@ -169,7 +177,7 @@ class Service {
 	private function browse($url, $personId, $saveMode) {
 		// chech if the page is in cache
 		$urlHash   = md5($url);
-		$fileCache = Utils::getTempDir() . "/web/$urlHash.html";
+		$fileCache = TEMP_PATH . "/web/$urlHash.html";
 
 		// load the page from cache
 		if (file_exists($fileCache)) {
@@ -178,7 +186,7 @@ class Service {
 			$title = $this->getTitle($html);
 
 			// increase cache counter
-			Connection::query("UPDATE _web_cache SET visits=visits+1 WHERE url_hash='$urlHash'");
+			Database::query("UPDATE _web_cache SET visits=visits+1 WHERE url_hash='$urlHash'");
 		}
 		// load the page online
 		else {
@@ -187,8 +195,8 @@ class Service {
 			$title = $this->getTitle($html);
 
 			// cache the page
-			$title = Connection::escape($title);
-			Connection::query("INSERT IGNORE INTO _web_cache (url_hash, url, title) VALUES ('$urlHash', '$url', '$title')");
+			$title = Database::escape($title);
+			Database::query("INSERT IGNORE INTO _web_cache (url_hash, url, title) VALUES ('$urlHash', '$url', '$title')");
 			file_put_contents($fileCache, $html);
 		}
 
@@ -198,8 +206,8 @@ class Service {
 		}
 
 		// save the page as visited by the user
-		$title = Connection::escape($title, 250);
-		Connection::query("INSERT INTO _web_history (person_id, url, title) VALUES ($personId, '$url', '$title')");
+		$title = Database::escape($title, 250);
+		Database::query("INSERT INTO _web_history (person_id, url, title) VALUES ($personId, '$url', '$title')");
 
 		// compress the page
 		if ($saveMode) {
@@ -250,8 +258,6 @@ class Service {
 				];
 			}
 		}
-
-		return $results;
 	}
 
 	/**
@@ -582,9 +588,9 @@ class Service {
 		return $new_href;
 	}
 
-	function _http(Request $request, Response $response) {
+	function _http(Request $request, Response &$response) {
 
-		$settigns = Connection::query("SELECT save_mode FROM _web_user_settings WHERE id_person = {$request->person->id}")[0];
+		$settigns = Database::query("SELECT save_mode FROM _web_user_settings WHERE id_person = {$request->person->id}")[0];
 
 		$query = "https://www.wikipedia.org";
 		$info  = $this->getHTTP($request, $query, 'GET', '', $agent = 'default', $config = [
@@ -609,10 +615,7 @@ class Service {
 				'settings' => $settigns,
 			]);
 		}
-
-		return $response;
 	}
-
 
 	private function domRemoveNode(&$node) {
 		$pnode = $node->parentNode;

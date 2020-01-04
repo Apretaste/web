@@ -4,5 +4,7 @@
 	"description": "Buscar y navegar en internet ahorrando datos.",
 	"category": "comunicaciones",
 	"creator": "salvi@apretaste.org",
-	"listed": true
+	"listed": true,
+	"guest": true,
+	"caption": "Web"
 }
