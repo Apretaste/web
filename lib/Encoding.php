@@ -345,8 +345,8 @@ class Encoding
 	{
 		if ($option == self::WITHOUT_ICONV || !function_exists('iconv')) {
 			$o = utf8_decode(
-	   	str_replace(array_keys(self::$utf8ToWin1252), array_values(self::$utf8ToWin1252), self::toUTF8($text))
-	   );
+				str_replace(array_keys(self::$utf8ToWin1252), array_values(self::$utf8ToWin1252), self::toUTF8($text))
+			);
 		} else {
 			$o = iconv("UTF-8", "Windows-1252" . ($option == self::ICONV_TRANSLIT ? '//TRANSLIT' : ($option == self::ICONV_IGNORE ? '//IGNORE' : '')), $text);
 		}

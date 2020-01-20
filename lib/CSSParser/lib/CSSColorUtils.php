@@ -175,9 +175,9 @@ class CSSColorUtils
 			return 'transparent';
 		}
 		$result = array_search(
-		['r' => $r, 'g' => $g, 'b' => $b],
-		self::$X11_COLORS_MAP
-	);
+			['r' => $r, 'g' => $g, 'b' => $b],
+			self::$X11_COLORS_MAP
+		);
 		return $result === false ? null : $result;
 	}
 
@@ -314,7 +314,7 @@ class CSSColorUtils
 	$l = ($max + $min) / 2;
 
 		if ($delta_max == 0) { //This is a gray, no chroma...
-	  //HSL results from 0 to 1
+			//HSL results from 0 to 1
 			$h = 0;
 			$s = 0;
 		} else { //Chromatic data...

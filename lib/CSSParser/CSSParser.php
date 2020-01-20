@@ -734,9 +734,9 @@ class CSSParser
 			if ((!$bIsAbsUrl && !$bIsAbsPath)
 		  || ($bIsAbsPath && $this->bIsAbsBaseUrl)) {
 				$sURL = CSSUrlUtils::joinPaths(
-			$this->getOption('base_url'),
-			$sURL
-		);
+					$this->getOption('base_url'),
+					$sURL
+				);
 				$sValue = new CSSString($sURL);
 			}
 		}

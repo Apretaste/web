@@ -132,11 +132,11 @@ class CSSColor extends CSSFunction
 	public function fromHSL(array $aHSL)
 	{
 		$aRGB = CSSColorUtils::hsl2rgb(
-		(string) $aHSL['h'],
-		(string) $aHSL['s'],
-		(string) $aHSL['l'],
-		isset($aHSL['a']) ? (string) $aHSL['a'] : 1
-	);
+			(string) $aHSL['h'],
+			(string) $aHSL['s'],
+			(string) $aHSL['l'],
+			isset($aHSL['a']) ? (string) $aHSL['a'] : 1
+		);
 		return $this->fromRGB($aRGB);
 	}
 
@@ -185,11 +185,11 @@ class CSSColor extends CSSFunction
 			return;
 		}
 		$aRGB = CSSColorUtils::hsl2rgb(
-		$aComponents['h']->getSize(),
-		$aComponents['s']->getSize(),
-		$aComponents['l']->getSize(),
-		isset($aComponents['a']) ? $aComponents['a']->getSize() : 1
-	);
+			$aComponents['h']->getSize(),
+			$aComponents['s']->getSize(),
+			$aComponents['l']->getSize(),
+			isset($aComponents['a']) ? $aComponents['a']->getSize() : 1
+		);
 		
 		$this->aComponents = [];
 		foreach ($aRGB as $key => $val) {
@@ -216,11 +216,11 @@ class CSSColor extends CSSFunction
 			return;
 		}
 		$aHSL = CSSColorUtils::rgb2hsl(
-		$aComponents['r']->getSize(),
-		$aComponents['g']->getSize(),
-		$aComponents['b']->getSize(),
-		isset($aComponents['a']) ? $aComponents['a']->getSize() : 1
-	);
+			$aComponents['r']->getSize(),
+			$aComponents['g']->getSize(),
+			$aComponents['b']->getSize(),
+			isset($aComponents['a']) ? $aComponents['a']->getSize() : 1
+		);
 		$this->aComponents = [];
 		$this->aComponents['h'] = new CSSSize($aHSL['h'], null, true);
 		$this->aComponents['s'] = new CSSSize($aHSL['s'], '%', true);
@@ -239,10 +239,10 @@ class CSSColor extends CSSFunction
 		$this->toRGB();
 		$aComponents = $this->aComponents;
 		return CSSColorUtils::rgb2NamedColor(
-		$aComponents['r']->getSize(),
-		$aComponents['g']->getSize(),
-		$aComponents['b']->getSize()
-	);
+			$aComponents['r']->getSize(),
+			$aComponents['g']->getSize(),
+			$aComponents['b']->getSize()
+		);
 	}
 
 	public function getHexValue()
@@ -255,18 +255,18 @@ class CSSColor extends CSSFunction
 		if ($sName == 'rgb') {
 			if (isset($aComponents['r']) && isset($aComponents['g']) && isset($aComponents['b'])) {
 				return CSSColorUtils::rgb2hex(
-		  	$aComponents['r']->getSize(),
-		  	$aComponents['g']->getSize(),
-		  	$aComponents['b']->getSize()
-		  );
+					$aComponents['r']->getSize(),
+					$aComponents['g']->getSize(),
+					$aComponents['b']->getSize()
+				);
 			}
 		} elseif ($sName == 'hsl') {
 			if (isset($aComponents['h']) && isset($aComponents['s']) && isset($aComponents['l'])) {
 				return CSSColorUtils::hsl2hex(
-		  	$aComponents['h']->getSize(),
-		  	$aComponents['s']->getSize(),
-		  	$aComponents['l']->getSize()
-		  );
+					$aComponents['h']->getSize(),
+					$aComponents['s']->getSize(),
+					$aComponents['l']->getSize()
+				);
 			}
 		}
 		return null;
