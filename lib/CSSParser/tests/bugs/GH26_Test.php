@@ -6,26 +6,26 @@ require_once __DIR__.'/../../CSSParser.php';
  */
 class GH26_Test extends PHPUnit_Framework_TestCase
 {
-  /**
-   * @dataProvider testMSFiltersProvider
-   **/
-  public function testMSFilters($sCss, $sExpected)
-  {
-    $oParser = new CSSParser();
-    $oDoc = $oParser->parseString($sCss);
-    $this->assertEquals((string)$oDoc, $sExpected);
-  }
-  public function testMSFiltersProvider()
-  {
-    return array(
-      array(
-        "div{ filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#ededed'); }",
-        'div {filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endColorstr="#ededed");}',
-      ),
-      array(
-        'div{ -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=60)"; }',
-        'div {-ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=60);}',
-      ) 
-    );
-  }
+	/**
+	 * @dataProvider testMSFiltersProvider
+	 **/
+	public function testMSFilters($sCss, $sExpected)
+	{
+		$oParser = new CSSParser();
+		$oDoc = $oParser->parseString($sCss);
+		$this->assertEquals((string) $oDoc, $sExpected);
+	}
+	public function testMSFiltersProvider()
+	{
+		return [
+	  [
+		"div{ filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#ededed'); }",
+		'div {filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endColorstr="#ededed");}',
+	  ],
+	  [
+		'div{ -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=60)"; }',
+		'div {-ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=60);}',
+	  ]
+	];
+	}
 }

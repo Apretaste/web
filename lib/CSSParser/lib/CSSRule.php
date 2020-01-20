@@ -4,58 +4,65 @@
 * CSSRuleSets contains CSSRule objects which always have a key and a value.
 * In CSS, CSSRules are expressed as follows: “key: value[0][0] value[0][1], value[1][0] value[1][1];”
 */
-class CSSRule {
+class CSSRule
+{
 	private $sRule;
 	private $mValue;
 	private $bIsImportant;
 	
-	public function __construct($sRule) {
+	public function __construct($sRule)
+	{
 		$this->sRule = $sRule;
 		$this->mValue = null;
 		$this->bIsImportant = false;
 	}
 	
-	public function setRule($sRule) {
+	public function setRule($sRule)
+	{
 		$this->sRule = $sRule;
 	}
 
-	public function getRule() {
+	public function getRule()
+	{
 		return $this->sRule;
 	}
 
-	public function getValue() {
+	public function getValue()
+	{
 		return $this->mValue;
 	}
 
-	public function setValue($mValue) {
+	public function setValue($mValue)
+	{
 		$this->mValue = $mValue;
 	}
 	
 	/**
 	*	@deprecated Old-Style 2-dimensional array given. Retained for (some) backwards-compatibility. Use setValue() instead and wrapp the value inside a CSSRuleValueList if necessary.
 	*/
-	public function setValues($aSpaceSeparatedValues) {
+	public function setValues($aSpaceSeparatedValues)
+	{
 		$oSpaceSeparatedList = null;
-		if(count($aSpaceSeparatedValues) > 1) {
+		if (count($aSpaceSeparatedValues) > 1) {
 			$oSpaceSeparatedList = new CSSRuleValueList(' ');
 		}
-		foreach($aSpaceSeparatedValues as $aCommaSeparatedValues) {
+		foreach ($aSpaceSeparatedValues as $aCommaSeparatedValues) {
 			$oCommaSeparatedList = null;
-			if(count($aCommaSeparatedValues) > 1) {
+			if (count($aCommaSeparatedValues) > 1) {
 				$oCommaSeparatedList = new CSSRuleValueList(',');
 			}
-			foreach($aCommaSeparatedValues as $mValue) {
-				if(!$oSpaceSeparatedList && !$oCommaSeparatedList) {
+			foreach ($aCommaSeparatedValues as $mValue) {
+				if (!$oSpaceSeparatedList && !$oCommaSeparatedList) {
 					$this->mValue = $mValue;
 					return $mValue;
 				}
-				if($oCommaSeparatedList) {
+				if ($oCommaSeparatedList) {
 					$oCommaSeparatedList->addListComponent($mValue);
 				} else {
 					$oSpaceSeparatedList->addListComponent($mValue);
 				}
 			}
-			if(!$oSpaceSeparatedList) {
+			if (!$oSpaceSeparatedList) {
 				$this->mValue = $oCommaSeparatedList;
 				return $oCommaSeparatedList;
 			} else {
@@ -69,24 +76,25 @@ class CSSRule {
 	/**
 	*	@deprecated Old-Style 2-dimensional array returned. Retained for (some) backwards-compatibility. Use getValue() instead and check for the existance of a (nested set of) CSSValueList object(s).
 	*/
-	public function getValues() {
-		if(!$this->mValue instanceof CSSRuleValueList) {
-			return array(array($this->mValue));
+	public function getValues()
+	{
+		if (!$this->mValue instanceof CSSRuleValueList) {
+			return [[$this->mValue]];
 		}
-		if($this->mValue->getListSeparator() === ',') {
-			return array($this->mValue->getListComponents());
+		if ($this->mValue->getListSeparator() === ',') {
+			return [$this->mValue->getListComponents()];
 		}
-		$aResult = array();
-		foreach($this->mValue->getListComponents() as $mValue) {
-			if(!$mValue instanceof CSSRuleValueList || $mValue->getListSeparator() !== ',') {
-				$aResult[] = array($mValue);
+		$aResult = [];
+		foreach ($this->mValue->getListComponents() as $mValue) {
+			if (!$mValue instanceof CSSRuleValueList || $mValue->getListSeparator() !== ',') {
+				$aResult[] = [$mValue];
 				continue;
 			}
-			if($this->mValue->getListSeparator() === ' ' || count($aResult) === 0) {
-				$aResult[] = array();
+			if ($this->mValue->getListSeparator() === ' ' || count($aResult) === 0) {
+				$aResult[] = [];
 			}
-			foreach($mValue->getListComponents() as $mValue) {
-				$aResult[count($aResult)-1][] = $mValue;
+			foreach ($mValue->getListComponents() as $mValue) {
+				$aResult[count($aResult) - 1][] = $mValue;
 			}
 		}
 		return $aResult;
@@ -95,38 +103,42 @@ class CSSRule {
 	/**
 	* Adds a value to the existing value. Value will be appended if a CSSRuleValueList exists of the given type. Otherwise, the existing value will be wrapped by one.
 	*/
-	public function addValue($mValue, $sType = ' ') {
-		if(!is_array($mValue)) {
-			$mValue = array($mValue);
+	public function addValue($mValue, $sType = ' ')
+	{
+		if (!is_array($mValue)) {
+			$mValue = [$mValue];
 		}
-		if(!$this->mValue instanceof CSSRuleValueList || $this->mValue->getListSeparator() !== $sType) {
+		if (!$this->mValue instanceof CSSRuleValueList || $this->mValue->getListSeparator() !== $sType) {
 			$mCurrentValue = $this->mValue;
 			$this->mValue = new CSSRuleValueList($sType);
-			if($mCurrentValue) {
+			if ($mCurrentValue) {
 				$this->mValue->addListComponent($mCurrentValue);
 			}
 		}
-		foreach($mValue as $mValueItem) {
+		foreach ($mValue as $mValueItem) {
 			$this->mValue->addListComponent($mValueItem);
 		}
 	}
 	
-	public function setIsImportant($bIsImportant) {
+	public function setIsImportant($bIsImportant)
+	{
 		$this->bIsImportant = $bIsImportant;
 	}
 
-	public function getIsImportant() {
+	public function getIsImportant()
+	{
 		return $this->bIsImportant;
 	}
 	
-	public function __toString() {
+	public function __toString()
+	{
 		$sResult = "{$this->sRule}: ";
-		if($this->mValue instanceof CSSValue) { //Can also be a CSSValueList
+		if ($this->mValue instanceof CSSValue) { //Can also be a CSSValueList
 			$sResult .= $this->mValue->__toString();
 		} else {
 			$sResult .= $this->mValue;
 		}
-		if($this->bIsImportant) {
+		if ($this->bIsImportant) {
 			$sResult .= ' !important';
 		}
 		$sResult .= ';';

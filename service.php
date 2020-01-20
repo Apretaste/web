@@ -6,22 +6,22 @@ use Framework\Config;
 use Framework\Crawler;
 use Framework\Database;
 use Apretaste\Challenges;
-use Framework\Utils;
 
-class Service {
-
-	public $base = NULL;
+class Service
+{
+	public $base = null;
 
 	/**
 	 * Opens the browser screen
 	 *
-	 * @param Request  $request
+	 * @param Request $request
 	 * @param Response $response
 	 *
 	 * @throws \Framework\Alert
 	 * @author salvipascual
 	 */
-	public function _main(Request $request, Response &$response) {
+	public function _main(Request $request, Response &$response)
+	{
 		// get data from the request
 		$query = isset($request->input->data->query) ? $request->input->data->query :'';
 
@@ -41,9 +41,9 @@ class Service {
 			//$response->setCache("day");
 			$response->setLayout('browser.ejs');
 			$response->setTemplate('home.ejs', [
-				'query'    => '',
+				'query' => '',
 				'settings' => $settigns,
-				'sites'    => $sites,
+				'sites' => $sites,
 			]);
 			return;
 		}
@@ -61,14 +61,14 @@ class Service {
 			// get the html code of the page
 			//$html = $this->browse($query, $request->person->id, $settigns->save_mode);
 			$info = $this->getHTTP($request, $query, 'GET', '', $agent = 'default', $config = [
-				'default_user_agent'  => 'Mozilla/5.0 (Windows NT 6.2; rv:40.0) Gecko/20100101 Firefox/40.0',
-				'mobile_user_agent'   => 'Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16',
+				'default_user_agent' => 'Mozilla/5.0 (Windows NT 6.2; rv:40.0) Gecko/20100101 Firefox/40.0',
+				'mobile_user_agent' => 'Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16',
 				'max_attachment_size' => 400,
-				'cache_life_time'     => 100000,
+				'cache_life_time' => 100000,
 			]);
 
 			$html = '';
-			if ($info !== FALSE) {
+			if ($info !== false) {
 				$html = $info['body'];
 			}
 
@@ -76,7 +76,7 @@ class Service {
 			if (empty($html)) {
 				$response->setLayout('browser.ejs');
 				$response->setTemplate('error.ejs', [
-						'query'    => $query,
+						'query' => $query,
 						'settings' => $settigns,
 				]);
 				return;
@@ -86,10 +86,10 @@ class Service {
 			//$response->setCache("month");
 			$response->setLayout('browser.ejs');
 			$response->setTemplate('web.ejs', [
-				'query'    => $query,
+				'query' => $query,
 				'settings' => $settigns,
-				'content'  => $html,
-				'style'    => $info['css'],
+				'content' => $html,
+				'style' => $info['css'],
 			]);
 
 			Challenges::complete('open-web-page', $request->person->id);
@@ -110,7 +110,7 @@ class Service {
 		if (empty($results)) {
 			$response->setLayout('browser.ejs');
 			$response->setTemplate('error.ejs', [
-					'query'    => $query,
+					'query' => $query,
 					'settings' => $settigns,
 			]);
 			return;
@@ -120,9 +120,9 @@ class Service {
 		//$response->setCache("year");
 		$response->setLayout('browser.ejs');
 		$response->setTemplate('google.ejs', [
-				'query'    => $query,
+				'query' => $query,
 				'settings' => $settigns,
-				'results'  => $results,
+				'results' => $results,
 		]);
 	}
 
@@ -134,7 +134,8 @@ class Service {
 	 * @param Request $request
 	 * @param Response $response
 	 */
-	public function _history(Request $request, Response &$response) {
+	public function _history(Request $request, Response &$response)
+	{
 		// get the history for the person
 		$pages = Database::query("
 			SELECT title, url, inserted 
@@ -155,7 +156,8 @@ class Service {
 	 * @param Request $request
 	 * @param Response $response
 	 */
-	public function _set(Request $request, Response &$response) {
+	public function _set(Request $request, Response &$response)
+	{
 		// get save mode to change
 		$saveMode = empty($request->input->data->save_mode) ? 0 : 1;
 
@@ -177,15 +179,16 @@ class Service {
 	 *
 	 * @return String
 	 */
-	private function browse($url, $personId, $saveMode) {
+	private function browse($url, $personId, $saveMode)
+	{
 		// chech if the page is in cache
-		$urlHash   = md5($url);
+		$urlHash = md5($url);
 		$fileCache = TEMP_PATH . "/web/$urlHash.html";
 
 		// load the page from cache
 		if (file_exists($fileCache)) {
 			// load from cache
-			$html  = file_get_contents($fileCache);
+			$html = file_get_contents($fileCache);
 			$title = $this->getTitle($html);
 
 			// increase cache counter
@@ -194,7 +197,7 @@ class Service {
 		// load the page online
 		else {
 			// get the page from online
-			$html  = $this->getHtmlFromUrl($url);
+			$html = $this->getHtmlFromUrl($url);
 			$title = $this->getTitle($html);
 
 			// cache the page
@@ -230,7 +233,8 @@ class Service {
 	 * @author kumahacker
 	 *
 	 */
-	private function search($q) {
+	private function search($q)
+	{
 		// do not allow empty queries
 		if (empty($q)) {
 			return [];
@@ -246,18 +250,18 @@ class Service {
 				'method' => 'GET',
 			],
 		]);
-		$result  = Crawler::get('https://api.cognitive.microsoft.com/bing/v7.0/search?mkt=es-US&q='. urlencode($q));
-		$json    = json_decode($result);
+		$result = Crawler::get('https://api.cognitive.microsoft.com/bing/v7.0/search?mkt=es-US&q='. urlencode($q));
+		$json = json_decode($result);
 
 		// format the search results
 		$results = [];
 		if (isset($json->webPages)) {
 			foreach ($json->webPages->value as $v) {
-				$v         = get_object_vars($v);
+				$v = get_object_vars($v);
 				$results[] = [
 						'title' => $v['name'],
-						'url'   => $v['url'],
-						'note'  => $v['snippet'],
+						'url' => $v['url'],
+						'note' => $v['snippet'],
 				];
 			}
 		}
@@ -273,16 +277,17 @@ class Service {
 	 *
 	 * @return String
 	 */
-	private function minify($html, $url) {
+	private function minify($html, $url)
+	{
 		$tidy = new tidy();
 		$html = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
 		$html = $tidy->repairString($html, [
-			'output-xhtml' => TRUE,
+			'output-xhtml' => true,
 		], 'utf8');
 
 		// create DOM element
-		$dom                   = new DomDocument('1.0', 'UTF-8');
-		$libxml_previous_state = libxml_use_internal_errors(TRUE);
+		$dom = new DomDocument('1.0', 'UTF-8');
+		$libxml_previous_state = libxml_use_internal_errors(true);
 		@$dom->loadHTML($html);
 		libxml_clear_errors();
 		libxml_use_internal_errors($libxml_previous_state);
@@ -293,10 +298,10 @@ class Service {
 		$html = $dom->savehtml($body);
 
 		$html = $tidy->repairString($html, [
-			'output-xhtml' => TRUE,
+			'output-xhtml' => true,
 		], 'utf8');
 
-		$libxml_previous_state = libxml_use_internal_errors(TRUE);
+		$libxml_previous_state = libxml_use_internal_errors(true);
 		@$dom->loadHTML($html);
 		libxml_clear_errors();
 		libxml_use_internal_errors($libxml_previous_state);
@@ -326,9 +331,9 @@ class Service {
 		}
 
 		// get the domain and directory from the URL
-		$urlp      = parse_url($url);
+		$urlp = parse_url($url);
 		$urlDomain = $urlp['scheme'] . '://' . $urlp['host'];
-		$urlDir    = dirname($url) . '/';
+		$urlDir = dirname($url) . '/';
 
 		// replace <a> by onclick
 		foreach ($dom->getElementsByTagName('a') as $node) {
@@ -338,8 +343,7 @@ class Service {
 			// complete relative links
 			if (php::startsWith($src, '/')) {
 				$src = $urlDomain . $src;
-			}
-			elseif (!php::startsWith($src, 'http')) {
+			} elseif (!php::startsWith($src, 'http')) {
 				$src = $urlDir . $src;
 			}
 
@@ -377,18 +381,18 @@ class Service {
 	 *
 	 * @return Boolean
 	 */
-	private function isValidDomain($domain) {
+	private function isValidDomain($domain)
+	{
 		// FILTER_VALIDATE_URL checks length but..why not? so we dont move forward with more expensive operations
 		$domain_len = strlen($domain);
-		if ($domain_len < 3 OR $domain_len > 253) {
-			return FALSE;
+		if ($domain_len < 3 or $domain_len > 253) {
+			return false;
 		}
 
 		// getting rid of HTTP/S just in case was passed.
 		if (stripos($domain, 'http://') === 0) {
 			$domain = substr($domain, 7);
-		}
-		elseif (stripos($domain, 'https://') === 0) {
+		} elseif (stripos($domain, 'https://') === 0) {
 			$domain = substr($domain, 8);
 		}
 
@@ -398,12 +402,12 @@ class Service {
 		}
 
 		// Checking for a '.' at least, not in the beginning nor end, since http://.abcd. is reported valid
-		if (strpos($domain, '.') === FALSE OR $domain[strlen($domain) - 1] == '.' OR $domain[0] == '.') {
-			return FALSE;
+		if (strpos($domain, '.') === false or $domain[strlen($domain) - 1] == '.' or $domain[0] == '.') {
+			return false;
 		}
 
 		// now we use the FILTER_VALIDATE_URL, concatenating http so we can use it, and return BOOL
-		return (filter_var('http://' . $domain, FILTER_VALIDATE_URL) === FALSE) ? FALSE : TRUE;
+		return (filter_var('http://' . $domain, FILTER_VALIDATE_URL) === false) ? false : true;
 	}
 
 	/**
@@ -415,7 +419,8 @@ class Service {
 	 *
 	 * @return String
 	 */
-	private function getTitle($html) {
+	private function getTitle($html)
+	{
 		// get the title using a regexp
 		$res = preg_match("/<title>(.*)<\/title>/siU", $html, $matches);
 		if (!$res) {
@@ -435,7 +440,8 @@ class Service {
 	 *
 	 * @return String
 	 */
-	private function getHtmlFromUrl($url) {
+	private function getHtmlFromUrl($url)
+	{
 		// prepare URL for CURL
 		$url = str_replace('//', '/', $url);
 		$url = str_replace('http:/', 'http://', $url);
@@ -446,9 +452,9 @@ class Service {
 		foreach (
 			[
 					'Cache-Control' => 'max-age=0',
-					'Origin'        => "{$url}",
-					'User-Agent'    => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36',
-					'Content-Type'  => 'application/x-www-form-urlencoded',
+					'Origin' => "{$url}",
+					'User-Agent' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36',
+					'Content-Type' => 'application/x-www-form-urlencoded',
 			] as $key => $val
 		) {
 			$headers[] = "$key: $val";
@@ -464,7 +470,8 @@ class Service {
 	 *
 	 * @return boolean
 	 */
-	private function isHttpURL($url) {
+	private function isHttpURL($url)
+	{
 		$url = trim(strtolower($url));
 		return strtolower(substr($url, 0, 7)) === 'http://' || strtolower(substr($url, 0, 8)) === 'https://';
 	}
@@ -476,7 +483,8 @@ class Service {
 	 *
 	 * @return boolean
 	 */
-	private function isFtpURL($url) {
+	private function isFtpURL($url)
+	{
 		$url = trim(strtolower($url));
 		return strtolower(substr($url, 0, 6)) === 'ftp://';
 	}
@@ -485,7 +493,8 @@ class Service {
 	/**
 	 * Return full HREF
 	 */
-	private function getFullHref($href, $url) {
+	private function getFullHref($href, $url)
+	{
 		$href = trim($href);
 		if ($href == '' || $href == 'javascript(0);' || $href == 'javascript:void(0);') {
 			return $url;
@@ -512,7 +521,7 @@ class Service {
 
 		$url = trim($url);
 
-		if (substr($url, strlen($url) - 1, 1) =='/') {
+		if (substr($url, strlen($url) - 1, 1) == '/') {
 			$url = substr($url, 0, strlen($url) - 1);
 		}
 
@@ -520,9 +529,8 @@ class Service {
 
 		if (!is_null($this->base)) {
 			$base = $this->base;
-		}
-		else {
-			if ($parts === FALSE) {
+		} else {
+			if ($parts === false) {
 				return $href;
 			}
 
@@ -538,7 +546,7 @@ class Service {
 				$exts = explode(' ', 'html htm php5 exe php jsp asp aspx jsf py');
 
 				foreach ($exts as $ext) {
-					if (stripos($p, '.' . $ext) !== FALSE) {
+					if (stripos($p, '.' . $ext) !== false) {
 						$base .= dirname($p) .'/';
 						break;
 					}
@@ -558,54 +566,56 @@ class Service {
 	 *
 	 * @return string
 	 */
-	private function convertLink(DOMElement &$node, string $url) {
+	private function convertLink(DOMElement &$node, string $url)
+	{
 		$href = $node->getAttribute('href');
 		if (trim($href) == '') {
 			return '';
 		}
 
-		$new_href  = '#!';
+		$new_href = '#!';
 		$full_href = $this->getFullHref($href, $url);
 		$node->setAttribute('onclick', "apretaste.send({command: 'web', data: {query: '$full_href'}});");
 		return $new_href;
 	}
 
-	function _http(Request $request, Response &$response) {
-
+	public function _http(Request $request, Response &$response)
+	{
 		$settigns = Database::query("SELECT save_mode FROM _web_user_settings WHERE id_person = {$request->person->id}")[0];
 
 		$query = 'https://www.wikipedia.org';
-		$info  = $this->getHTTP($request, $query, 'GET', '', $agent = 'default', $config = [
-			'default_user_agent'  => 'Mozilla/5.0 (Windows NT 6.2; rv:40.0) Gecko/20100101 Firefox/40.0',
-			'mobile_user_agent'   => 'Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16',
+		$info = $this->getHTTP($request, $query, 'GET', '', $agent = 'default', $config = [
+			'default_user_agent' => 'Mozilla/5.0 (Windows NT 6.2; rv:40.0) Gecko/20100101 Firefox/40.0',
+			'mobile_user_agent' => 'Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16',
 			'max_attachment_size' => 400,
-			'cache_life_time'     => 100000,
+			'cache_life_time' => 100000,
 		]);
-		if ($info !== FALSE) {
+		if ($info !== false) {
 			// create response
 			$response->setCache('month');
 			$response->setLayout('browser.ejs');
 			$response->setTemplate('web.ejs', [
-				'query'    => $query,
+				'query' => $query,
 				'settings' => $settigns,
-				'html'     => $info['body'],
+				'html' => $info['body'],
 			]);
-		}
-		else {
+		} else {
 			$response->setTemplate('error.ejs', [
-					'query'    => $query,
+					'query' => $query,
 					'settings' => $settigns,
 			]);
 		}
 	}
 
-	private function domRemoveNode(&$node) {
+	private function domRemoveNode(&$node)
+	{
 		$pnode = $node->parentNode;
 		$this->domRemoveChildren($node);
 		$pnode->removeChild($node);
 	}
 
-	private function domRemoveChildren(&$node) {
+	private function domRemoveChildren(&$node)
+	{
 		while ($node->firstChild) {
 			while ($node->firstChild->firstChild) {
 				$this->domRemoveChildren($node->firstChild);
@@ -615,7 +625,8 @@ class Service {
 		}
 	}
 
-	private function getHTTP($request, $url, $method = 'GET', $post = '', $agent = 'default', $config = []) {
+	private function getHTTP($request, $url, $method = 'GET', $post = '', $agent = 'default', $config = [])
+	{
 		require_once __DIR__.'/lib/CSSParser/CSSParser.php';
 		require_once __DIR__.'/lib/Encoding.php';
 		require_once __DIR__.'/lib/Fetcher.php';
@@ -627,29 +638,27 @@ class Service {
 		$url = str_replace('http:/', 'http://', $url);
 		$url = str_replace('https:/', 'https://', $url);
 
-		if (strpos($url, '//')===0) {
+		if (strpos($url, '//') === 0) {
 			$url = 'http:' . $url;
-		}
-		else if (strpos($url, '/')===0) {
+		} elseif (strpos($url, '/') === 0) {
 			$url = 'http:/' . $url;
 		}
 
 		try {
 			// Create http client
 			$http_client = new GuzzleHttp\Client([
-				'cookies'  => TRUE,
+				'cookies' => true,
 				'defaults' => [
-					'verify' => FALSE,
+					'verify' => false,
 				],
 			]);
-
 		} catch (Exception $e) {
-			return FALSE;
+			return false;
 		}
 
 		// Build POST
 		if ($post != '') {
-			$arr  = explode('&', $post);
+			$arr = explode('&', $post);
 			$post = [];
 			foreach ($arr as $v) {
 				$arr2 = explode('=', $v);
@@ -658,13 +667,12 @@ class Service {
 				}
 				$post[$arr2[0]] = $arr2[1];
 			}
-		}
-		else {
+		} else {
 			$post = [];
 		}
 
-		$cookies                    = FALSE;
-		$options['allow_redirects'] = TRUE;
+		$cookies = false;
+		$options['allow_redirects'] = true;
 
 		// Set user agent
 		$options['headers'] = [
@@ -680,7 +688,7 @@ class Service {
 		try {
 			$http_response = $http_client->request($method, $url, $options);
 		} catch (Exception $e) {
-			return FALSE;
+			return false;
 		}
 
 		$http_headers = [];
@@ -693,7 +701,7 @@ class Service {
 		$resources = [];
 
 		// Getting HTML page
-		$css  = '';
+		$css = '';
 		$body = $http_response->getBody();
 
 		// Force to UTF8 encoding
@@ -701,7 +709,7 @@ class Service {
 
 		$tidy = new tidy();
 		$body = $tidy->repairString($body, [
-			'output-xhtml' => TRUE,
+			'output-xhtml' => true,
 		], 'utf8');
 
 		$doc = new DOMDocument();
@@ -720,8 +728,7 @@ class Service {
 
 		if ($title->length > 0) {
 			$title = $title->item(0)->nodeValue;
-		}
-		else {
+		} else {
 			$title = $url;
 		}
 
@@ -732,11 +739,11 @@ class Service {
 			foreach ($links as $link) {
 				$href = $link->getAttribute('href');
 
-				if ($href == FALSE || empty($href)) {
+				if ($href == false || empty($href)) {
 					$href = $link->getAttribute('data-src');
 				}
 
-				if (substr($href, 0, 1)==='#') {
+				if (substr($href, 0, 1) === '#') {
 					$link->setAttribute('href', '#!');
 					$link->setAttribute('anchor-link', $href);
 					$link->setAttribute('onclick', 'return false;');
@@ -752,7 +759,7 @@ class Service {
 		}
 
 		// Array for store replacements of DOM's nodes
-		$replace    = [];
+		$replace = [];
 		$in_the_end = [];
 
 		// Get scripts
@@ -789,11 +796,10 @@ class Service {
 
 			if ($elements->length > 0) {
 				foreach ($elements as $element) {
-
 					$replace[] = [
 						'oldnode' => $element,
-						'newnode' => NULL,
-						'parent'  => $element->parentNode,
+						'newnode' => null,
+						'parent' => $element->parentNode,
 					];
 				}
 			}
@@ -806,13 +812,12 @@ class Service {
 			foreach ($styles as $style) {
 
 				// Is CSS?
-				if ($style->getAttribute('rel')==='stylesheet') {
-
+				if ($style->getAttribute('rel') === 'stylesheet') {
 					$href = $this->getFullHref($style->getAttribute('href'), $url);
 
 					$r = Crawler::get($href);
 
-					if ($r !== FALSE) {
+					if ($r !== false) {
 
 						/*try {
 							$oParser = new CSSParser();
@@ -824,7 +829,7 @@ class Service {
 							$r = '';
 						}
 */
-						$css              .= $r;
+						$css .= $r;
 						$resources[$href] = $href;
 					}
 				}
@@ -844,7 +849,7 @@ class Service {
 				} catch (Exception $e) {
 				}
 
-				if ($result = '' || $result == 'data:;base64,'){
+				if ($result = '' || $result == 'data:;base64,') {
 					try {
 						$inliner = new Milanspv\InlineImages\Converter($url .'/'. $src);
 						$result = utf8_encode($inliner->convert());
@@ -852,7 +857,9 @@ class Service {
 					}
 				}
 
-				if ($result!='') $image->setAttribute('src', $result);
+				if ($result != '') {
+					$image->setAttribute('src', $result);
+				}
 			}
 		}
 
@@ -861,8 +868,7 @@ class Service {
 			try {
 				if (is_null($rep['newnode'])) {
 					$rep['parent']->removeChild($rep['oldnode']);
-				}
-				else {
+				} else {
 					$rep['parent']->replaceChild($rep['newnode'], $rep['oldnode']);
 				}
 			} catch (Exception $e) {
@@ -871,21 +877,20 @@ class Service {
 		}
 
 		$replace = [];
-		$body    = $doc->saveHTML();
+		$body = $doc->saveHTML();
 
 		// Set style to each element in DOM, based on CSS stylesheets
 
 		$css = ForceUTF8\Encoding::toUTF8($css);
 
 		$standard_css = file_get_contents(__DIR__ .'/standards/html5-boilerplate.css');
-		$css          = str_replace(['/*>*/', '/**/', '<![CDATA[', ']]'], '', $css);
-		$emo          = new Pelago\Emogrifier($body, $css);
+		$css = str_replace(['/*>*/', '/**/', '<![CDATA[', ']]'], '', $css);
+		$emo = new Pelago\Emogrifier($body, $css);
 		$emo->disableInvisibleNodeRemoval();
 
 		try {
 			$body = $emo->emogrify();
 		} catch (Exception $e) {
-
 		}
 
 		@$doc->loadHTML($body);
@@ -901,7 +906,7 @@ class Service {
 		foreach ($tags_to_fix as $tagname) {
 			if (array_search($tagname, [
 					'input',
-				]) !== FALSE) {
+				]) !== false) {
 				continue;
 			}
 
@@ -910,9 +915,9 @@ class Service {
 				foreach ($tags as $tag) {
 					if (trim($tag->nodeValue) == '' && $tag->childNodes->length == 0) {
 						$replace[] = [
-							'parent'  => $tag->parentNode,
+							'parent' => $tag->parentNode,
 							'oldnode' => $tag,
-							'newnode' => NULL,
+							'newnode' => null,
 						];
 					}
 				}
@@ -938,7 +943,7 @@ class Service {
 
 				$newpre->setAttribute('style', $pre->getAttribute('style') . ';font-size: 13px;font-family:Courier;');
 				$replace[] = [
-					'parent'  => $pre->parentNode,
+					'parent' => $pre->parentNode,
 					'oldnode' => $pre,
 					'newnode' => $newpre,
 				];
@@ -948,7 +953,6 @@ class Service {
 		// Fixing styles
 
 		foreach ($tags_to_fix as $tag) {
-
 			$links = $doc->getElementsByTagName($tag);
 
 			if ($links->length > 0) {
@@ -968,8 +972,7 @@ class Service {
 			try {
 				if (is_null($rep['newnode'])) {
 					$rep['parent']->removeChild($rep['oldnode']);
-				}
-				else {
+				} else {
 					$rep['parent']->replaceChild($rep['newnode'], $rep['oldnode']);
 				}
 			} catch (Exception $e) {
@@ -999,8 +1002,8 @@ class Service {
 
 		// Get only the body
 		$body = $tidy->repairString($body, [
-			'output-xhtml'   => TRUE,
-			'show-body-only' => TRUE,
+			'output-xhtml' => true,
+			'show-body-only' => true,
 		], 'utf8');
 
 		$body = str_ireplace('class=""', '', $body);
@@ -1010,7 +1013,7 @@ class Service {
 		$body = preg_replace('/\s+/S', ' ', $body);
 
 		// Cut large pages
-		$limit       = 1024 * 400; // 400KB
+		$limit = 1024 * 400; // 400KB
 		$body_length = strlen($body);
 		if ($body_length > $limit) {
 			$body = substr($body, 0, $limit);
@@ -1026,13 +1029,13 @@ class Service {
 
 		// Return results
 		return [
-			'title'       => $title,
-			'body'        => $body,
-			'style'       => $styleBody,
+			'title' => $title,
+			'body' => $body,
+			'style' => $styleBody,
 			'body_length' => number_format($body_length / 1024, 2),
-			'url'         => $url,
-			'resources'   => $resources,
-			'css'         => $css,
+			'url' => $url,
+			'resources' => $resources,
+			'css' => $css,
 		];
 	}
 }

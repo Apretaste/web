@@ -3,28 +3,34 @@
 /**
  * Class representing an @import rule.
  */
-class CSSImport {
+class CSSImport
+{
 	private $oLocation;
 	private $sMediaQuery;
 	
-	public function __construct(CSSURL $oLocation, $sMediaQuery) {
+	public function __construct(CSSURL $oLocation, $sMediaQuery)
+	{
 		$this->oLocation = $oLocation;
 		$this->sMediaQuery = $sMediaQuery;
 	}
 	
-	public function setLocation($oLocation) {
-    $this->oLocation = $oLocation;
+	public function setLocation($oLocation)
+	{
+		$this->oLocation = $oLocation;
 	}
 
-	public function getLocation() {
-    return $this->oLocation;
+	public function getLocation()
+	{
+		return $this->oLocation;
 	}
 
-  public function getMediaQuery() {
-    return $this->sMediaQuery;
-  }
+	public function getMediaQuery()
+	{
+		return $this->sMediaQuery;
+	}
 	
-	public function __toString() {
+	public function __toString()
+	{
 		return "@import ".$this->oLocation->__toString().($this->sMediaQuery === null ? '' : ' '.$this->sMediaQuery).';';
 	}
 }
@@ -36,22 +42,27 @@ class CSSImport {
  * • May only appear at the very top of a CSSDocument’s contents.
  * • Must not appear more than once.
  */
-class CSSCharset {
+class CSSCharset
+{
 	private $sCharset;
 	
-	public function __construct($sCharset) {
+	public function __construct($sCharset)
+	{
 		$this->sCharset = $sCharset;
 	}
 	
-	public function setCharset($sCharset) {
-    $this->sCharset = $sCharset;
+	public function setCharset($sCharset)
+	{
+		$this->sCharset = $sCharset;
 	}
 
-	public function getCharset() {
+	public function getCharset()
+	{
 		return $this->sCharset;
 	}
 	
-	public function __toString() {
+	public function __toString()
+	{
 		return "@charset {$this->sCharset->__toString()};";
 	}
 }
@@ -64,40 +75,47 @@ class CSSCharset {
  *   <li>May only appear after all @import rules and before other @rules.</li>
  * </ul>
  */
-class CSSNamespace {
-  private $sPrefix;
-  private $sURI;
+class CSSNamespace
+{
+	private $sPrefix;
+	private $sURI;
 
-  public function __construct($sURI, $sPrefix=null) {
-    $this->sURI = $sURI;
-    $this->sPrefix = $sPrefix;
-  }
+	public function __construct($sURI, $sPrefix = null)
+	{
+		$this->sURI = $sURI;
+		$this->sPrefix = $sPrefix;
+	}
 
-  public function getURI() {
-    return $this->sURI;
-  }
-  public function setURI($sURI) {
-    $this->sURI = $sURI;
-  }
+	public function getURI()
+	{
+		return $this->sURI;
+	}
+	public function setURI($sURI)
+	{
+		$this->sURI = $sURI;
+	}
 
-  public function getPrefix() {
-    return $this->sPrefix;
-  }
-  public function setPrefix($sPrefix) {
-    $this->sPrefix = $sPrefix;
-  }
+	public function getPrefix()
+	{
+		return $this->sPrefix;
+	}
+	public function setPrefix($sPrefix)
+	{
+		$this->sPrefix = $sPrefix;
+	}
 
-  public function __toString() {
-    $sPrefix = $this->sPrefix ? ' '.$this->sPrefix : '';
-    return "@namespace" . $sPrefix . ' ' . $this->sURI . ';';
-  }
-
+	public function __toString()
+	{
+		$sPrefix = $this->sPrefix ? ' '.$this->sPrefix : '';
+		return "@namespace" . $sPrefix . ' ' . $this->sURI . ';';
+	}
 }
 
 /**
 * Class representing a single CSS selector. Selectors have to be split by the comma prior to being passed into this class.
 */
-class CSSSelector {
+class CSSSelector
+{
 	const
 		NON_ID_ATTRIBUTES_AND_PSEUDO_CLASSES_RX = '/
 			(\.[\w]+)										 # classes
@@ -130,37 +148,41 @@ class CSSSelector {
 	private $sSelector;
 	private $iSpecificity;
 	
-	public function __construct($sSelector, $bCalculateSpecificity = false) {
+	public function __construct($sSelector, $bCalculateSpecificity = false)
+	{
 		$this->setSelector($sSelector);
-		if($bCalculateSpecificity) {
+		if ($bCalculateSpecificity) {
 			$this->getSpecificity();
 		}
 	}
 	
-	public function getSelector() {
+	public function getSelector()
+	{
 		return $this->sSelector;
 	}
 	
-	public function setSelector($sSelector) {
+	public function setSelector($sSelector)
+	{
 		$this->sSelector = trim($sSelector);
 		$this->iSpecificity = null;
 	}
 
-	public function __toString() {
+	public function __toString()
+	{
 		return $this->getSelector();
 	}
 
-	public function getSpecificity() {
-		if($this->iSpecificity === null) {
+	public function getSpecificity()
+	{
+		if ($this->iSpecificity === null) {
 			$a = 0;
 			/// @todo should exclude \# as well as "#"
 			$aMatches;
 			$b = substr_count($this->sSelector, '#');
 			$c = preg_match_all(self::NON_ID_ATTRIBUTES_AND_PSEUDO_CLASSES_RX, $this->sSelector, $aMatches);
 			$d = preg_match_all(self::ELEMENTS_AND_PSEUDO_ELEMENTS_RX, $this->sSelector, $aMatches);
-			$this->iSpecificity = ($a*1000) + ($b*100) + ($c*10) + $d;
+			$this->iSpecificity = ($a * 1000) + ($b * 100) + ($c * 10) + $d;
 		}
 		return $this->iSpecificity;
 	}
 }
-
