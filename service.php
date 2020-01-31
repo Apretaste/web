@@ -12,6 +12,20 @@ class Service
 	public $base = null;
 
 	/**
+	 * Returns try if $needle is at the starts with $haystack
+	 *
+	 * @author salvipascual
+	 * @param String $haystack
+	 * @param String $needle
+	 * @return Boolean
+	 */
+	public static function startsWith($haystack, $needle)
+	{
+		$length = mb_strlen($needle, 'UTF-8');
+		return (mb_substr($haystack, 0, $length, 'UTF-8') === $needle);
+	}
+
+	/**
 	 * Opens the browser screen
 	 *
 	 * @param Request $request
@@ -54,7 +68,7 @@ class Service
 
 		if ($this->isValidDomain($query)) {
 			// add the scheeme if not passed
-			if (!php::startsWith($query, 'http')) {
+			if (!self::startsWith($query, 'http')) {
 				$query = "http://$query";
 			}
 
@@ -341,9 +355,9 @@ class Service
 			$src = trim($node->getAttribute('href'));
 
 			// complete relative links
-			if (php::startsWith($src, '/')) {
+			if (self::startsWith($src, '/')) {
 				$src = $urlDomain . $src;
-			} elseif (!php::startsWith($src, 'http')) {
+			} elseif (!self::startsWith($src, 'http')) {
 				$src = $urlDir . $src;
 			}
 
