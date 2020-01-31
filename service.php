@@ -264,7 +264,12 @@ class Service
 				'method' => 'GET',
 			],
 		]);
-		$result = Crawler::get('https://api.cognitive.microsoft.com/bing/v7.0/search?mkt=es-US&q='. urlencode($q));
+		try {
+			$result = Crawler::get('https://api.cognitive.microsoft.com/bing/v7.0/search?mkt=es-US&q='. urlencode($q));
+		} catch(Exception $e){
+
+		}
+
 		$json = json_decode($result);
 
 		// format the search results
@@ -482,8 +487,10 @@ class Service
 		) {
 			$headers[] = "$key: $val";
 		}
-
-		return Crawler::get($url, 'GET', null, $headers);
+		try {
+			return Crawler::get($url, 'GET', null, $headers);
+		} catch(Exception $e){ }
+		return '';
 	}
 
 	/**
