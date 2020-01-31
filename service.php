@@ -302,7 +302,12 @@ class Service
 		// create DOM element
 		$dom = new DomDocument('1.0', 'UTF-8');
 		$libxml_previous_state = libxml_use_internal_errors(true);
-		@$dom->loadHTML($html);
+		try {
+			@$dom->loadHTML($html);
+		} catch(Exception $e){
+
+		}
+
 		libxml_clear_errors();
 		libxml_use_internal_errors($libxml_previous_state);
 
@@ -316,7 +321,11 @@ class Service
 		], 'utf8');
 
 		$libxml_previous_state = libxml_use_internal_errors(true);
-		@$dom->loadHTML($html);
+		try {
+			@$dom->loadHTML($html);
+		} catch(Exception $e){
+
+		}
 		libxml_clear_errors();
 		libxml_use_internal_errors($libxml_previous_state);
 
@@ -727,8 +736,11 @@ class Service
 		], 'utf8');
 
 		$doc = new DOMDocument();
+		try {
+			@$doc->loadHTML($body);
+		} catch(Exception $e){
 
-		@$doc->loadHTML($body);
+		}
 
 		// Getting BASE of URLs (base tag)
 		$base = $doc->getElementsByTagName('base');
@@ -907,7 +919,11 @@ class Service
 		} catch (Exception $e) {
 		}
 
-		@$doc->loadHTML($body);
+		try {
+			@$doc->loadHTML($body);
+		} catch(Exception $e){
+
+		}
 
 		$nodeBody = $doc->getElementsByTagName('body');
 
