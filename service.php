@@ -264,6 +264,9 @@ class Service
 				'method' => 'GET',
 			],
 		]);
+
+		$result = '[]';
+
 		try {
 			$result = Crawler::get('https://api.cognitive.microsoft.com/bing/v7.0/search?mkt=es-US&q='. urlencode($q));
 		} catch(Exception $e){
