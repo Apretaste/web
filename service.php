@@ -659,7 +659,7 @@ class Service
 		}
 	}
 
-	private function getHTTP($request, $url, $method = 'GET', $post = '', $agent = 'default', $config = [])
+	private function getHTTP($request, $url, $method = 'GET', $post = '', $agent = 'default', $config = [], $saveImage = false)
 	{
 		require_once __DIR__.'/lib/CSSParser/CSSParser.php';
 		require_once __DIR__.'/lib/Encoding.php';
@@ -873,29 +873,36 @@ class Service
 			}
 		}
 
-		$images = $doc->getElementsByTagName('img');
+
+			$images = $doc->getElementsByTagName('img');
 
 		if ($images->length > 0) {
-			foreach ($images as $image) {
-				$src = $image->getAttribute('src');
+			if (!$saveImage) {
+				foreach ($images as $image) {
+					$src = $image->getAttribute('src');
 
-				$result = '';
-				try {
-					$inliner = new Milanspv\InlineImages\Converter($this->getFullHref($src, $url));
-					$result = utf8_encode($inliner->convert());
-				} catch (Exception $e) {
-				}
-
-				if ($result = '' || $result == 'data:;base64,') {
+					$result = '';
 					try {
-						$inliner = new Milanspv\InlineImages\Converter($url .'/'. $src);
+						$inliner = new Milanspv\InlineImages\Converter($this->getFullHref($src, $url));
 						$result = utf8_encode($inliner->convert());
 					} catch (Exception $e) {
 					}
-				}
 
-				if ($result != '') {
-					$image->setAttribute('src', $result);
+					if ($result === '' || $result === 'data:;base64,') {
+						try {
+							$inliner = new Milanspv\InlineImages\Converter($url .'/'. $src);
+							$result = utf8_encode($inliner->convert());
+						} catch (Exception $e) {
+						}
+					}
+
+					if ($result !== '') {
+						$image->setAttribute('src', $result);
+					}
+				}
+			} else {
+				foreach ($images as $image) {
+					$image->setAttribute('src', '');
 				}
 			}
 		}
@@ -903,7 +910,7 @@ class Service
 		// Replace/remove childs
 		foreach ($replace as $rep) {
 			try {
-				if (is_null($rep['newnode'])) {
+				if ($rep['newnode']===null) {
 					$rep['parent']->removeChild($rep['oldnode']);
 				} else {
 					$rep['parent']->replaceChild($rep['newnode'], $rep['oldnode']);
@@ -1011,7 +1018,7 @@ class Service
 
 		foreach ($replace as $rep) {
 			try {
-				if (is_null($rep['newnode'])) {
+				if ($rep['newnode']===null) {
 					$rep['parent']->removeChild($rep['oldnode']);
 				} else {
 					$rep['parent']->replaceChild($rep['newnode'], $rep['oldnode']);
