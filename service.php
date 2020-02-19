@@ -41,8 +41,9 @@ class Service
 
 		// get the user settings
 		Database::query("INSERT IGNORE INTO _web_user_settings (id_person) VALUES ({$request->person->id})");
-		$settigns = Database::query("SELECT save_mode FROM _web_user_settings WHERE id_person = {$request->person->id}")[0];
+		$settings = Database::query("SELECT save_mode FROM _web_user_settings WHERE id_person = {$request->person->id}")[0];
 
+		$settings->save_mode = ((int) $settings->save_mode) === 1;
 		//
 		// show welcome message when query is empty
 		//
@@ -56,7 +57,7 @@ class Service
 			$response->setLayout('browser.ejs');
 			$response->setTemplate('home.ejs', [
 				'query' => '',
-				'settings' => $settigns,
+				'settings' => $settings,
 				'sites' => $sites,
 			]);
 			return;
@@ -73,7 +74,7 @@ class Service
 			}
 
 			// get the html code of the page
-			//$html = $this->browse($query, $request->person->id, $settigns->save_mode);
+			//$html = $this->browse($query, $request->person->id, $settings->save_mode);
 			$info = $this->getHTTP($request, $query, 'GET', '', $agent = 'default', $config = [
 				'default_user_agent' => 'Mozilla/5.0 (Windows NT 6.2; rv:40.0) Gecko/20100101 Firefox/40.0',
 				'mobile_user_agent' => 'Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16',
@@ -91,7 +92,7 @@ class Service
 				$response->setLayout('browser.ejs');
 				$response->setTemplate('error.ejs', [
 						'query' => $query,
-						'settings' => $settigns,
+						'settings' => $settings,
 				]);
 				return;
 			}
@@ -101,7 +102,7 @@ class Service
 			$response->setLayout('browser.ejs');
 			$response->setTemplate('web.ejs', [
 				'query' => $query,
-				'settings' => $settigns,
+				'settings' => $settings,
 				'content' => $html,
 				'style' => $info['css'],
 			]);
@@ -125,7 +126,7 @@ class Service
 			$response->setLayout('browser.ejs');
 			$response->setTemplate('error.ejs', [
 					'query' => $query,
-					'settings' => $settigns,
+					'settings' => $settings,
 			]);
 			return;
 		}
@@ -135,7 +136,7 @@ class Service
 		$response->setLayout('browser.ejs');
 		$response->setTemplate('google.ejs', [
 				'query' => $query,
-				'settings' => $settigns,
+				'settings' => $settings,
 				'results' => $results,
 		]);
 	}

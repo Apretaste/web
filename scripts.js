@@ -8,7 +8,7 @@ $(document).ready(function () {
 
   // check/uncheck the save mode switch
   if (settings !== undefined) {
-    if (settings.save_mode === 1) {
+    if (settings.save_mode) {
       $('#saveMode').prop("checked", true);
       $('#saveModeMessage').css('display', 'block');
     }
