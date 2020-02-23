@@ -201,14 +201,14 @@ class Service
 		$fileCache = TEMP_PATH . "/web/$urlHash.html";
 
 		// load the page from cache
-		if (file_exists($fileCache)) {
+		/*if (file_exists($fileCache)) {
 			// load from cache
 			$html = file_get_contents($fileCache);
 			$title = $this->getTitle($html);
 
 			// increase cache counter
 			Database::query("UPDATE _web_cache SET visits=visits+1 WHERE url_hash='$urlHash'");
-		}
+		}*/
 		// load the page online
 		else {
 			// get the page from online
