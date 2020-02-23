@@ -714,7 +714,7 @@ class Service
 		];
 
 		// Sending POST/GET data
-		if ($method == 'POST') {
+		if ($method==='POST') {
 			$options['body'] = $post;
 		}
 
@@ -874,7 +874,7 @@ class Service
 		}
 
 
-			$images = $doc->getElementsByTagName('img');
+		$images = $doc->getElementsByTagName('img');
 
 		if ($images->length > 0) {
 			if (!$saveImage) {
@@ -906,6 +906,28 @@ class Service
 				}
 			}
 		}
+
+		$urlp = parse_url($url);
+		$urlDomain = $urlp['scheme'] . '://' . $urlp['host'];
+		$urlDir = dirname($url) . '/';
+
+		// replace <a> by onclick
+		foreach ($doc->getElementsByTagName('a') as $node) {
+			// get the URL to the new page
+			$src = trim($node->getAttribute('href'));
+
+			// complete relative links
+			if (self::startsWith($src, '/')) {
+				$src = $urlDomain . $src;
+			} elseif (!self::startsWith($src, 'http')) {
+				$src = $urlDir . $src;
+			}
+
+			// convert the links to onclick
+			$node->setAttribute('href', '#!');
+			$node->setAttribute('onclick', "parent.send({command:'WEB', data:{query:'$src'}}); return false;");
+		}
+
 
 		// Replace/remove childs
 		foreach ($replace as $rep) {
