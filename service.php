@@ -79,7 +79,7 @@ class Service
 				'default_user_agent' => 'Mozilla/5.0 (Windows NT 6.2; rv:40.0) Gecko/20100101 Firefox/40.0',
 				'mobile_user_agent' => 'Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16',
 				'max_attachment_size' => 400,
-				'cache_life_time' => 100000,
+				'cache_life_time' => 0, // 100000,
 			], $settings->save_mode);
 
 			$html = '';
@@ -201,14 +201,14 @@ class Service
 		$fileCache = TEMP_PATH . "/web/$urlHash.html";
 
 		// load the page from cache
-		/*if (file_exists($fileCache)) {
+		if (file_exists($fileCache)) {
 			// load from cache
 			$html = file_get_contents($fileCache);
 			$title = $this->getTitle($html);
 
 			// increase cache counter
 			Database::query("UPDATE _web_cache SET visits=visits+1 WHERE url_hash='$urlHash'");
-		}*/
+		}
 		// load the page online
 		else {
 			// get the page from online
