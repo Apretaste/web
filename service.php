@@ -576,10 +576,9 @@ class Service {
 			return '';
 		}
 
-		$new_href  = '#!';
 		$full_href = $this->getFullHref($href, $url);
 		$node->setAttribute('onclick', "apretaste.send({command: 'web', data: {query: '$full_href'}});");
-		return $new_href;
+		$node->setAttribute('href',  '#!');
 	}
 
 	function _http(Request $request, Response $response) {
