@@ -577,7 +577,7 @@ class Service {
 		}
 
 		$full_href = $this->getFullHref($href, $url);
-		$node->setAttribute('onclick', "apretaste.send({command: 'web', data: {query: '$full_href'}});");
+		$node->setAttribute('onclick', "parent.send({command: 'web', data: {query: '$full_href'}});");
 		$node->setAttribute('href',  '#!');
 	}
 
