@@ -98,7 +98,7 @@ function formatDateTime(dateStr) {
   var months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   var date = new Date(dateStr);
   var month = date.getMonth();
-  var day = pad(date.getDay(),2);
+  var day = pad(date.getDate(),2);
   var hour = (date.getHours() < 12) ? date.getHours() : date.getHours() - 12;
   var minutes = date.getMinutes();
   if (minutes < 10) {

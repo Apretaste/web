@@ -126,10 +126,10 @@ class Service {
 	public function _history(Request $request, Response $response) {
 		// get the history for the person
 		$pages = Connection::query("
-			SELECT title, url, inserted 
-			FROM _web_history 
+			SELECT title, url, inserted
+			FROM _web_history
 			WHERE person_id = {$request->person->id}
-			ORDER BY inserted 
+			ORDER BY inserted
 			DESC LIMIT 20");
 
 		// create the response
@@ -150,8 +150,8 @@ class Service {
 
 		// update the user's settings
 		Connection::query("
-			UPDATE _web_user_settings 
-			SET save_mode = $saveMode 
+			UPDATE _web_user_settings
+			SET save_mode = $saveMode
 			WHERE id_person = {$request->person->id}");
 	}
 
@@ -647,6 +647,31 @@ class Service {
 		}
 		else if (substr($url, 0, 1) == '/') {
 			$url = 'http:/' . $url;
+		}
+
+		// chech if the page is in cache
+		$urlHash   = md5($url);
+		$fileCache = Utils::getTempDir() . "/web/$urlHash.html";
+
+		// load the page from cache
+		if (file_exists($fileCache)) {
+			// load from cache
+			$html  = file_get_contents($fileCache);
+			$title = $this->getTitle($html);
+
+			// increase cache counter
+			Connection::query("UPDATE _web_cache SET visits=visits+1 WHERE url_hash='$urlHash'");
+		}
+		// load the page online
+		else {
+			// get the page from online
+			$html  = $this->getHtmlFromUrl($url);
+			$title = $this->getTitle($html);
+
+			// cache the page
+			$title = Connection::escape($title);
+			Connection::query("INSERT IGNORE INTO _web_cache (url_hash, url, title) VALUES ('$urlHash', '$url', '$title')");
+			file_put_contents($fileCache, $html);
 		}
 
 		try {
