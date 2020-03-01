@@ -846,8 +846,13 @@ class Service
 				if ($style->getAttribute('rel') === 'stylesheet') {
 					$href = $this->getFullHref($style->getAttribute('href'), $url);
 
-					$r = Crawler::get($href);
+					$r = false;
+					try {
+						$r = Crawler::get($href);
+					} catch(Alert $a){
 
+					}
+					
 					if ($r !== false) {
 
 						/*try {
