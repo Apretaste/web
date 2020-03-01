@@ -258,20 +258,12 @@ class Service
 		// get the Bing key
 		$key = Config::pick('bing')['key1'];
 
-		// perform the request and get the JSON response
-		$context = stream_context_create([
-			'http' => [
-				'header' => "Ocp-Apim-Subscription-Key: $key\r\n",
-				'method' => 'GET',
-			],
-		]);
-
 		$result = '[]';
 
 		try {
-			$result = Crawler::get('https://api.cognitive.microsoft.com/bing/v7.0/search?mkt=es-US&q='. urlencode($q));
+			$result = Crawler::get('https://api.cognitive.microsoft.com/bing/v7.0/search?mkt=es-US&q='. urlencode($q), 'GET', null, ["Ocp-Apim-Subscription-Key: $key"]);
 		} catch(Exception $e){
-
+			
 		}
 
 		$json = json_decode($result);
@@ -288,6 +280,7 @@ class Service
 				];
 			}
 		}
+		return $results;
 	}
 
 	/**
