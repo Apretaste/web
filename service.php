@@ -2,6 +2,7 @@
 
 use Apretaste\Request;
 use Apretaste\Response;
+use Framework\Alert;
 use Framework\Config;
 use Framework\Crawler;
 use Framework\Database;
