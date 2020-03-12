@@ -563,6 +563,8 @@ class Service
 
 			if (!isset($parts['port'])) {
 				$parts['port'] = 80;
+				if ($parts['scheme'] === 'https') $parts['port'] = 443;
+
 			}
 
 			$base = $parts['scheme'] .'://'. $parts['host'] .':'. $parts['port'] .'/';
