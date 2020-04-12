@@ -263,8 +263,7 @@ class Service
 
 		try {
 			$result = Crawler::get('https://api.cognitive.microsoft.com/bing/v7.0/search?mkt=es-US&q='. urlencode($q), 'GET', null, ["Ocp-Apim-Subscription-Key: $key"]);
-		} catch(Exception $e){
-			
+		} catch (Exception $e) {
 		}
 
 		$json = json_decode($result);
@@ -307,8 +306,7 @@ class Service
 		$libxml_previous_state = libxml_use_internal_errors(true);
 		try {
 			@$dom->loadHTML($html);
-		} catch(Exception $e){
-
+		} catch (Exception $e) {
 		}
 
 		libxml_clear_errors();
@@ -326,8 +324,7 @@ class Service
 		$libxml_previous_state = libxml_use_internal_errors(true);
 		try {
 			@$dom->loadHTML($html);
-		} catch(Exception $e){
-
+		} catch (Exception $e) {
 		}
 		libxml_clear_errors();
 		libxml_use_internal_errors($libxml_previous_state);
@@ -363,6 +360,10 @@ class Service
 
 		// replace <a> by onclick
 		foreach ($dom->getElementsByTagName('a') as $node) {
+			if ($node === null) {
+				continue;
+			}
+
 			// get the URL to the new page
 			$src = trim($node->getAttribute('href'));
 
@@ -487,7 +488,8 @@ class Service
 		}
 		try {
 			return Crawler::get($url, 'GET', null, $headers);
-		} catch(Exception $e){ }
+		} catch (Exception $e) {
+		}
 		return '';
 	}
 
@@ -564,8 +566,9 @@ class Service
 
 			if (!isset($parts['port'])) {
 				$parts['port'] = 80;
-				if ($parts['scheme'] === 'https') $parts['port'] = 443;
-
+				if ($parts['scheme'] === 'https') {
+					$parts['port'] = 443;
+				}
 			}
 
 			$base = $parts['scheme'] .'://'. $parts['host'] .':'. $parts['port'] .'/';
@@ -598,6 +601,10 @@ class Service
 	 */
 	private function convertLink(DOMElement &$node, string $url)
 	{
+		if ($node === null) {
+			return '';
+		}
+
 		$href = $node->getAttribute('href');
 		if (trim($href) == '') {
 			return '';
@@ -606,7 +613,7 @@ class Service
 		$new_href = '#!';
 		$full_href = $this->getFullHref($href, $url);
 		$node->setAttribute('onclick', "apretaste.send({command: 'web', data: {query: '$full_href'}});");
-		$node->setAttribute('href',  '#!');
+		$node->setAttribute('href', '#!');
 		return $new_href;
 	}
 
@@ -711,7 +718,7 @@ class Service
 		];
 
 		// Sending POST/GET data
-		if ($method==='POST') {
+		if ($method === 'POST') {
 			$options['body'] = $post;
 		}
 
@@ -746,8 +753,7 @@ class Service
 		$doc = new DOMDocument();
 		try {
 			@$doc->loadHTML($body);
-		} catch(Exception $e){
-
+		} catch (Exception $e) {
 		}
 
 		// Getting BASE of URLs (base tag)
@@ -771,6 +777,10 @@ class Service
 
 		if ($links->length > 0) {
 			foreach ($links as $link) {
+				if ($link === null) {
+					continue;
+				}
+
 				$href = $link->getAttribute('href');
 
 				if ($href == false || empty($href)) {
@@ -801,6 +811,9 @@ class Service
 
 		if ($scripts->length > 0) {
 			foreach ($scripts as $script) {
+				if ($script === null) {
+					continue;
+				}
 				$src = $this->getFullHref($script->getAttribute('src'), $url);
 
 				if ($src != $url) {
@@ -844,6 +857,9 @@ class Service
 
 		if ($styles->length > 0) {
 			foreach ($styles as $style) {
+				if ($style === null) {
+					continue;
+				}
 
 				// Is CSS?
 				if ($style->getAttribute('rel') === 'stylesheet') {
@@ -852,8 +868,7 @@ class Service
 					$r = false;
 					try {
 						$r = Crawler::get($href);
-					} catch(Alert $a){
-
+					} catch (Alert $a) {
 					}
 					
 					if ($r !== false) {
@@ -881,6 +896,10 @@ class Service
 		if ($images->length > 0) {
 			if (!$saveImage) {
 				foreach ($images as $image) {
+					if ($image === null) {
+						continue;
+					}
+
 					$src = $image->getAttribute('src');
 
 					$result = '';
@@ -915,6 +934,10 @@ class Service
 
 		// replace <a> by onclick
 		foreach ($doc->getElementsByTagName('a') as $node) {
+			if ($node === null) {
+				continue;
+			}
+
 			// get the URL to the new page
 			$src = trim($node->getAttribute('href'));
 
@@ -934,7 +957,7 @@ class Service
 		// Replace/remove childs
 		foreach ($replace as $rep) {
 			try {
-				if ($rep['newnode']===null) {
+				if ($rep['newnode'] === null) {
 					$rep['parent']->removeChild($rep['oldnode']);
 				} else {
 					$rep['parent']->replaceChild($rep['newnode'], $rep['oldnode']);
@@ -963,15 +986,15 @@ class Service
 
 		try {
 			@$doc->loadHTML($body);
-		} catch(Exception $e){
-
+		} catch (Exception $e) {
 		}
 
 		$nodeBody = $doc->getElementsByTagName('body');
-
-		$styleBody = @$nodeBody[0]->getAttribute('style');
-		//$styleBody = $this->fixStyle($styleBody);
-		$styleBody = str_replace('"', "'", $styleBody);
+		if (isset($nodeBody[0])) {
+			$styleBody = @$nodeBody[0]->getAttribute('style');
+			//$styleBody = $this->fixStyle($styleBody);
+			$styleBody = str_replace('"', "'", $styleBody);
+		}
 
 		$tags_to_fix = explode(' ', 'a p label div pre h1 h2 h3 h4 h5 button i b u li ol ul fieldset small legend form input span button nav table tr th td thead');
 
@@ -1003,12 +1026,16 @@ class Service
 
 		if ($pres->length > 0) {
 			foreach ($pres as $pre) {
+				if ($pre === null) {
+					continue;
+				}
+
 				$lines = explode('\n', $pre->nodeValue);
 
-				$newpre = $doc->createElement('div');
+				$newpre = @$doc->createElement('div');
 				foreach ($lines as $line) {
 					$line = str_replace(' ', '&nbsp;', $line);
-					$newp = $doc->createElement('p', $line);
+					$newp = @$doc->createElement('p', $line);
 					$newp->setAttribute('style', 'line-height:13px;');
 					$newpre->appendChild($newp);
 				}
@@ -1029,6 +1056,9 @@ class Service
 
 			if ($links->length > 0) {
 				foreach ($links as $link) {
+					if ($link === null) {
+						continue;
+					}
 					$sty = $link->getAttribute('style');
 					//$sty = $this->fixStyle($sty);
 					$link->setAttribute('style', $sty);
@@ -1042,7 +1072,7 @@ class Service
 
 		foreach ($replace as $rep) {
 			try {
-				if ($rep['newnode']===null) {
+				if ($rep['newnode'] === null) {
 					$rep['parent']->removeChild($rep['oldnode']);
 				} else {
 					$rep['parent']->replaceChild($rep['newnode'], $rep['oldnode']);
