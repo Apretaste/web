@@ -264,6 +264,7 @@ class Service
 		try {
 			$result = Crawler::get('https://api.cognitive.microsoft.com/bing/v7.0/search?mkt=es-US&q='. urlencode($q), 'GET', null, ["Ocp-Apim-Subscription-Key: $key"]);
 		} catch (Exception $e) {
+			throw new Alert('581', 'No se pudo realizar su busqueda. El equipo tecnico esta informado.');
 		}
 
 		$json = json_decode($result);
@@ -489,6 +490,7 @@ class Service
 		try {
 			return Crawler::get($url, 'GET', null, $headers);
 		} catch (Exception $e) {
+			throw new Alert(581, 'No se pudo realizar su busqueda. El equipo tecnico esta informado.');
 		}
 		return '';
 	}
