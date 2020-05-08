@@ -743,6 +743,7 @@ class Service
 		// Getting HTML page
 		$css = '';
 		$body = $http_response->getBody();
+		$body = substr($body,0, 400 * 12024);
 
 		// Force to UTF8 encoding
 		$body = ForceUTF8\Encoding::toUTF8($body);
