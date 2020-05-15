@@ -58,3 +58,11 @@
 .bottom-space {
 	margin-bottom: 80px;
 }
+
+.no-mg-up {
+	margin-top: 0px;
+}
+
+.no-mg-down {
+	margin-bottom: 0px;
+}

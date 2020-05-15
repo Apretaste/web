@@ -26,7 +26,7 @@ class Service
 		$query = isset($request->input->data->query) ? $request->input->data->query : '';
 
 		//
-		// show welcome message when query is empty
+		// SHOW welcome message when query is empty
 		//
 
 		if (empty($query)) {
@@ -45,7 +45,7 @@ class Service
 		}
 
 		//
-		// download the page if a valid domain name or URL is passed
+		// DOWNLOAD the page if a valid domain name or URL is passed
 		//
 
 		if (Utils::isDomainValid($query)) {
@@ -60,7 +60,7 @@ class Service
 		}
 
 		//
-		// else search the web and return results
+		// SEARCH the web and return results
 		//
 
 		// get the search results
@@ -100,6 +100,16 @@ class Service
 			WHERE person_id = {$request->person->id}
 			ORDER BY inserted DESC
 			LIMIT 20");
+
+		// if there is no data, show message
+		if (empty($pages)) {
+				return $response->setTemplate('message.ejs', [
+				'header' => 'Historial vacío',
+				'icon' => 'web',
+				'text' => 'Aún no ha abrierto ninguna pagina web, por lo cual su historial esta vacío. Navegue un rato por la web y luego regrese acá.',
+				'button' => ['href' => 'WEB', 'caption' => 'Navegar'],
+			]);
+		}
 
 		// create the response
 		$response->setTemplate('history.ejs', ['pages' => $pages]);
