@@ -1,77 +1,35 @@
 /*
-	HELPERS
+	HOME
 */
 
-.small {
-	font-size: small;
+.input {
+	margin-top: 20px; 
 }
 
-.hidden {
-	display: none;
-}
-
-/*
-	LAYOUT
-*/
-
-#search {
-	background-color: white;
-	width: 100%;
-	position: fixed;
-	top: 0px;
-	left: 0px;
-	padding: 0px 10px 10px 10px;
-	z-index: 1;
-}
-
-#content {
-	margin-top: 70px;
-}
-
-.icon {
+.input .search {
 	position: absolute;
-	top: 10px;
-	background-color: white;
-	cursor: pointer;
+	right: 5px;
+	bottom: 15px;
 }
-
-.send {
-	right: 10px;
-}
-
-.home {
-	right: 40px;
-}
-
-.settings {
-	right: 70px;
-}
-
-.back {
-	right: 100px;
-}
-
-.menu-item {
-	border-top: 1px solid #C1C1C1; 
-	padding: 25px 0px;
-}
-
-/*
-	HOME SCREEN
-*/
 
 .card-panel {
-	padding: 5px;
-	overflow-wrap: break-word;
+	padding: 10px;
+	overflow: hidden;
+	text-align: left;
 	min-height: 80px;
 }
 
+.card-panel.history {
+	text-align: center;
+}
+
 /*
-	GOOGLE & HISTORY SCREENS
+	GOOGLE & HISTORY
 */
 
 .box {
-	padding: 30px 0px;
+	padding: 15px 0px;
+	overflow: hidden;
 }
 
 .compact {
@@ -97,20 +55,6 @@
 	font-size: 13px;
 }
 
-.date {
-	color: gray;
-	font-size: 10px;
-}
-
-/*
-	WEB SCREEN
-*/
-
-#container-frame {
-	position: absolute;
-	top: 60px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
-	border: 0px;
+.bottom-space {
+	margin-bottom: 80px;
 }
