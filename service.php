@@ -315,7 +315,8 @@ class Service
 				}
 
 				$href = $link->getAttribute('href');
-				$link->setAttribute('onclick', "parent.send({command: 'web', data: {query: '$href'}});");
+				$href = $this->getFullHref($href, $url);
+				$link->setAttribute('onclick', "parent.send({command: 'web', data: {query: '".urlencode($href)."'}});");
 				$link->setAttribute('href',  '#!');
 			}
 		}
