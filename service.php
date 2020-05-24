@@ -325,7 +325,10 @@ class Service
 
 		if ($imagesTags->length > 0) {
 			foreach ($imagesTags as $image) {
+				/** @var DOMNode $image  */
 				$src = $image->getAttribute('src');
+
+				if (empty($src)) $src = $image->getAttribute('srcset');
 
 				$img = null;
 				try {
