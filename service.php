@@ -161,19 +161,22 @@ class Service
 	 */
 	private function browse($url, $personId)
 	{
+		$files = [];
 		// get the code of the page
 		$page = Crawler::getCache($url);
 
 		// convert links to navigate using Apretaste
 		$page = $this->processPage($page, $url);
 
+		$file = LOCAL_TEMP_FOLDER . 'index.html';
+		file_put_contents($file, $page['page']);
+		$files[] = $file;
+
 		// get the files for the page
 		foreach ($page['images'] as $name => $content) {
 			file_put_contents(LOCAL_TEMP_FOLDER. $name, $content);
+			$files[] = LOCAL_TEMP_FOLDER. $name;
 		}
-
-		$file = LOCAL_TEMP_FOLDER . 'index.html';
-		file_put_contents($file, $page['page']);
 
 		// get the page domain
 		$parse = parse_url($url);
@@ -185,7 +188,7 @@ class Service
 			VALUES ($personId, '$url', '$domain')");
 
 		// return the page files
-		return [$file];
+		return $files;
 	}
 
 	/**
