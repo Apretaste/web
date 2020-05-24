@@ -76,6 +76,7 @@ class Service
 		//
 
 		if (Utils::isDomainValid($query)) {
+
 			// get the page files
 			$files = $this->browse($query, $request->person->id);
 
@@ -107,7 +108,7 @@ class Service
 		}
 
 		// create the response
-		$response->setCache("year");
+		$response->setCache('year');
 		$response->setTemplate('google.ejs', ['query' => $query, 'results' => $results]);
 	}
 
@@ -164,12 +165,15 @@ class Service
 		$page = Crawler::getCache($url);
 
 		// convert links to navigate using Apretaste
-		// @TODO
+		$page = $this->processPage($page, $url);
 
 		// get the files for the page
-		// @TODO save all the page resources like img and css
+		foreach ($page['images'] as $name => $content) {
+			file_put_contents(LOCAL_TEMP_FOLDER. $name, $content);
+		}
+
 		$file = LOCAL_TEMP_FOLDER . 'index.html';
-		file_put_contents($file, $page);
+		file_put_contents($file, $page['page']);
 
 		// get the page domain
 		$parse = parse_url($url);
@@ -236,5 +240,158 @@ class Service
 		}
 
 		return $results;
+	}
+
+	/**
+	 * Prepare HTML page
+	 *
+	 * @param $page
+	 * @param $url
+	 *
+	 * @return array
+	 */
+	private function processPage($page, $url){
+		$images = [];
+
+		// clear $url
+		$url = str_replace("///", "/", $url);
+		$url = str_replace("//", "/", $url);
+		$url = str_replace("http:/", "http://", $url);
+		$url = str_replace("https:/", "https://", $url);
+
+		if (strpos($url, '//') === 0) {
+			$url = 'http:' . $url;
+		}
+		else if (strpos($url, '/') === 0) {
+			$url = 'http:/' . $url;
+		}
+
+		$page = strip_tags($page, 'a p label div pre h1 h2 h3 h4 h5 button i b u li ol ul fieldset small legend form input span button nav table tr th td thead img link');
+
+		$doc = new DOMDocument();
+
+		@$doc->loadHTML($page);
+
+		// links
+		$links = $doc->getElementsByTagName('a');
+
+		if ($links->length > 0) {
+			foreach ($links as $link) {
+				$href = $link->getAttribute('href');
+
+				if ($href === FALSE || empty($href)) {
+					$href = $link->getAttribute('data-src');
+				}
+
+				if (strpos($href, '#') === 0) {
+					$link->setAttribute('href', '#!');
+					$link->setAttribute('anchor-link', $href);
+					$link->setAttribute('onclick', 'return false;');
+					$link->setAttribute('class', $link->getAttribute('class').' anchor-link');
+					continue;
+				}
+
+				if (stripos($href, 'mailto:') === 0) {
+					continue;
+				}
+
+				$href = $link->getAttribute('href');
+				$link->setAttribute('onclick', "parent.send({command: 'web', data: {query: '$href'}});");
+				$link->setAttribute('href',  '#!');
+			}
+		}
+
+		// images
+		$imagesTags = $doc->getElementsByTagName('img');
+
+		if ($imagesTags->length > 0) {
+			foreach ($imagesTags as $image) {
+				$src = $image->getAttribute('src');
+
+				$img = null;
+				try {
+					$name = 'img'.uniqid();
+					$img  = Crawler::get($src);
+					$images[$name] = $img;
+					$image->setAttribute('src', $name);
+				} catch (Alert $a) {
+
+				}
+			}
+		}
+
+		// css stylesheets
+		$styles = $doc->getElementsByTagName('link');
+		if ($styles->length > 0) {
+
+			// You can modify, and even delete, nodes from a DOMNodeList if you iterate backwards
+			for ($i = $styles->length; --$i >= 0; ) {
+
+				/** @var \DOMElement $style */
+				$style = $styles->item($i);
+
+				if ($style->getAttribute('rel') === 'stylesheet') {
+
+					try {
+						$remoteStyle = Crawler::get($style->getAttribute('href'));
+						/** @var \DOMNodeList $head */
+						$head = $doc->getElementsByTagName('head');
+
+						$new_elm = $doc->createElement('style', $remoteStyle);
+						$elm_type_attr = $doc->createAttribute('type');
+						$elm_type_attr->value = 'text/css';
+
+						// append style tag
+						$head->appendChild($new_elm);
+
+						// remove external css
+						$style->parentNode->removeChild($style);
+
+					} catch(Alert $a){
+
+					}
+				}
+			}
+		}
+
+		// js scripts
+		$scripts = $doc->getElementsByTagName('script');
+
+		// You can modify, and even delete, nodes from a DOMNodeList if you iterate backwards
+		for ($i = $scripts->length; --$i >= 0; ) {
+
+			/** @var \DOMElement $style */
+			$script = $scripts->item($i);
+			if ($script === null) {
+				continue;
+			}
+
+			try {
+				$remoteScript = Crawler::get($style->getAttribute('src'));
+				/** @var \DOMNodeList $head */
+				$body = $doc->getElementsByTagName('body');
+
+				$new_elm = $doc->createElement('script', $remoteScript);
+				$elm_type_attr = $doc->createAttribute('type');
+				$elm_type_attr->value = 'text/javascript';
+
+				// append style tag
+				$body->appendChild($new_elm);
+
+				// remove external css
+				$script->parentNode->removeChild($script);
+
+			} catch(Alert $a){
+
+			}
+		}
+
+		// get page from DOM
+		$page = $doc->saveHTML();
+
+		return [
+		  'page' => $page,
+		  'images' => $images
+		];
 	}
 }
