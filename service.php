@@ -345,8 +345,8 @@ class Service
 
 					try {
 						$remoteStyle = Crawler::get($style->getAttribute('href'));
-						/** @var \DOMNodeList $head */
-						$head = $doc->getElementsByTagName('head');
+						/** @var \DOMNode $head */
+						$head = $doc->getElementsByTagName('head')[0];
 
 						$new_elm = $doc->createElement('style', $remoteStyle);
 						$elm_type_attr = $doc->createAttribute('type');
@@ -379,8 +379,8 @@ class Service
 
 			try {
 				$remoteScript = Crawler::get($style->getAttribute('src'));
-				/** @var \DOMNodeList $head */
-				$body = $doc->getElementsByTagName('body');
+				/** @var \DOMNode $body  */
+				$body = $doc->getElementsByTagName('body')[0];
 
 				$new_elm = $doc->createElement('script', $remoteScript);
 				$elm_type_attr = $doc->createAttribute('type');
