@@ -337,6 +337,7 @@ class Service
 					$img  = Crawler::get($src);
 					$images[$name] = $img;
 					$image->setAttribute('src', $name);
+					$image->setAttribute('srcset', $name);
 				} catch (Alert $a) {
 
 				}
