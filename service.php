@@ -266,9 +266,14 @@ class Service
 			$url = 'http:/' . $url;
 		}
 
+		// repair html
 		$tidy = new tidy();
-		$page = $tidy->repairString($page);
+		$page = mb_convert_encoding($page, 'HTML-ENTITIES', 'UTF-8');
+		$page = $tidy->repairString($page, [
+		  'output-xhtml' => TRUE,
+		], 'utf8');
 
+		// create DOM, ignore errors
 		$doc  = new DomDocument('1.0', 'UTF-8');
 		$libxml_previous_state = libxml_use_internal_errors(TRUE);
 		@$doc->loadHTML($page);
