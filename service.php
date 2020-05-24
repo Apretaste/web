@@ -11,17 +11,44 @@ use Apretaste\Challenges;
 
 class Service
 {
+
+	/**
+	 * Check current version or person
+	 *
+	 * @param  \Apretaste\Request  $request
+	 * @param  \Apretaste\Response  $response
+	 *
+	 * @return bool
+	 * @throws \Framework\Alert
+	 */
+	public function checkVersion(Request $request, Response $response){
+		if ($request->input->appVersion < '6.0.5') {
+			$response->setTemplate('message.ejs', [
+			  'header' => 'Actualice la app',
+			  'icon' => 'sentiment_very_dissatisfied',
+			  'text' => 'Lo siento pero este servicio exige que se actualice la app a la version 6.0.5 o superior. ',
+			  'button' => ['href' => 'WEB', 'caption' => 'Intentar nuevamente'],
+			]);
+			return false;
+		}
+		return true;
+	}
+
 	/**
 	 * Opens the browser screen
 	 *
-	 * @param Request $request
-	 * @param Response $response
+	 * @param  Request  $request
+	 * @param  Response  $response
 	 *
+	 * @return \Apretaste\Response
 	 * @throws \Framework\Alert
 	 * @author salvipascual
 	 */
 	public function _main(Request $request, Response $response)
 	{
+
+		if (!$this->checkVersion($request, $response)) return;
+
 		// get data from the request
 		$query = isset($request->input->data->query) ? $request->input->data->query : '';
 
@@ -87,12 +114,17 @@ class Service
 	/**
 	 * Get the user's browsing history
 	 *
-	 * @param Request $request
-	 * @param Response $response
+	 * @param  Request  $request
+	 * @param  Response  $response
+	 *
+	 * @return \Apretaste\Response
+	 * @throws \Framework\Alert
 	 * @author salvipascual
 	 */
 	public function _history(Request $request, Response &$response)
 	{
+		if (!$this->checkVersion($request, $response)) return;
+
 		// get the history for the person
 		$pages = Database::query("
 			SELECT url, inserted 
@@ -118,11 +150,13 @@ class Service
 	/**
 	 * Download a website and return the array of files
 	 *
+	 * @param  String  $url
+	 * @param  Integer  $personId
+	 *
+	 * @return String[]
+	 * @throws \Framework\Alert
 	 * @author salvipascual
 	 *
-	 * @param String $url
-	 * @param Integer $personId
-	 * @return String[]
 	 */
 	private function browse($url, $personId)
 	{
@@ -153,8 +187,10 @@ class Service
 	/**
 	 * Search for a term in Bing and return formatted results
 	 *
-	 * @param String $q
+	 * @param  String  $q
+	 *
 	 * @return array
+	 * @throws \Framework\Alert
 	 * @author kumahacker
 	 */
 	private function search($query)
