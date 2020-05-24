@@ -173,11 +173,11 @@ class Service
 		}
 
 		$file = LOCAL_TEMP_FOLDER . 'index.html';
-		file_put_contents($file, $page['page']);
+		file_put_contents($file, $page['parge']);
 
 		// get the page domain
 		$parse = parse_url($url);
-		$domain = $parse['host'];
+		$domain = $parse['host'] ?? $parse['path'];
 
 		// save the search history
 		Database::query("
