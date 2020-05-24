@@ -12,6 +12,8 @@ use Apretaste\Challenges;
 class Service
 {
 
+	public $base;
+
 	/**
 	 * Check current version or person
 	 *
@@ -67,7 +69,7 @@ class Service
 				LIMIT 9');
 
 			// create response
-			$response->setCache("day");
+			$response->setCache('day');
 			return $response->setTemplate('home.ejs', ['sites'=>$sites]);
 		}
 
@@ -233,7 +235,7 @@ class Service
 					$results[] = [
 						'title' => $v['name'],
 						'url' => $v['url'],
-						'note' => strlen($v['snippet']) > 100 ? substr($v['snippet'], 0, 100) . "..." : $v['snippet']
+						'note' => strlen($v['snippet']) > 100 ? substr($v['snippet'], 0, 100).'...' : $v['snippet']
 					];
 				}
 			}
@@ -257,10 +259,10 @@ class Service
 		$images = [];
 
 		// clear $url
-		$url = str_replace("///", "/", $url);
-		$url = str_replace("//", "/", $url);
-		$url = str_replace("http:/", "http://", $url);
-		$url = str_replace("https:/", "https://", $url);
+		$url = str_replace('///', '/', $url);
+		$url = str_replace('//', '/', $url);
+		$url = str_replace('http:/', 'http://', $url);
+		$url = str_replace('https:/', 'https://', $url);
 
 		if (strpos($url, '//') === 0) {
 			$url = 'http:' . $url;
@@ -282,6 +284,12 @@ class Service
 		@$doc->loadHTML($page);
 		libxml_clear_errors();
 		libxml_use_internal_errors($libxml_previous_state);
+
+		// Getting BASE of URLs (base tag)
+		$base = $doc->getElementsByTagName('base');
+		if ($base->length > 0) {
+			$this->base = $base->item(0)->getAttribute('href');
+		}
 
 		// links
 		$links = $doc->getElementsByTagName('a');
@@ -321,6 +329,7 @@ class Service
 
 				$img = null;
 				try {
+					$src = $this->getFullHref($src, $url);
 					$name = 'img'.uniqid();
 					$img  = Crawler::get($src);
 					$images[$name] = $img;
@@ -344,7 +353,12 @@ class Service
 				if ($style->getAttribute('rel') === 'stylesheet') {
 
 					try {
-						$remoteStyle = Crawler::get($style->getAttribute('href'));
+
+						$href = $style->getAttribute('href');
+						$href = $this->getFullHref($href, $url);
+
+						$remoteStyle = Crawler::get($href);
+
 						/** @var \DOMNode $head */
 						$head = $doc->getElementsByTagName('head')[0];
 
@@ -378,7 +392,12 @@ class Service
 			}
 
 			try {
-				$remoteScript = Crawler::get($style->getAttribute('src'));
+
+				$src = $script->getAttribute('src');
+				$src = $this->getFullHref($src, $url);
+
+				$remoteScript = Crawler::get($src);
+
 				/** @var \DOMNode $body  */
 				$body = $doc->getElementsByTagName('body')[0];
 
@@ -405,5 +424,97 @@ class Service
 		  'page' => $page,
 		  'images' => $images
 		];
+	}
+
+	/**
+	 * Return TRUE if url is a HTTP or HTTPS
+	 *
+	 * @param string $url
+	 *
+	 * @return boolean
+	 */
+	private function isHttpURL($url) {
+		$url = trim(strtolower($url));
+		return stripos($url, 'http://') === 0 || stripos($url,
+			'https://') === 0;
+	}
+
+	/**
+	 * Return TRUE if url is a FTP
+	 *
+	 * @param string $url
+	 *
+	 * @return boolean
+	 */
+	private function isFtpURL($url) {
+		$url = strtolower(trim($url));
+		return stripos($url, 'ftp://') === 0;
+	}
+
+	/**
+	 * Return full HREF
+	 */
+	private function getFullHref($href, $url) {
+		$href = trim($href);
+		if ($href === '' || $href === 'javascript(0);' || $href === 'javascript:void(0);') {
+			return $url;
+		}
+		if (strtolower(strpos($href, '//') === 0)) {
+			return 'http:' . $href;
+		}
+		if (strtolower(strpos($href, '?') === 0)) {
+			if ($this->base !== null) {
+				return $this->base . $href;
+			}
+			return $url . $href;
+		}
+
+		$base = '';
+
+		if ($this->isHttpURL($href) || $this->isFtpURL($href)) {
+			return $href;
+		}
+
+		if (!$this->isHttpURL($url) && !$this->isFtpURL($url)) {
+			$url = 'http://' . $url;
+		}
+
+		$url = trim($url);
+
+		if ($url[strlen($url) - 1] === '/') {
+			$url = substr($url, 0, -1);
+		}
+
+		$parts = parse_url($url);
+
+		if ($this->base !== null) {
+			$base = $this->base;
+		}
+		else {
+			if ($parts === FALSE) {
+				return $href;
+			}
+
+			if (!isset($parts['port'])) {
+				$parts['port'] = 80;
+			}
+
+			$base = $parts['scheme'].'://'.$parts['host'].':'.$parts['port'].'/';
+
+			if (isset($parts['path'])) {
+				$p = $parts['path'];
+
+				$exts = explode(' ', 'html htm php5 exe php jsp asp aspx jsf py');
+
+				foreach ($exts as $ext) {
+					if (stripos($p, '.' . $ext) !== FALSE) {
+						$base .= dirname($p).'/';
+						break;
+					}
+				}
+			}
+		}
+
+		return $base . $href;
 	}
 }
