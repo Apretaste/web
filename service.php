@@ -173,7 +173,7 @@ class Service
 		}
 
 		$file = LOCAL_TEMP_FOLDER . 'index.html';
-		file_put_contents($file, $page['parge']);
+		file_put_contents($file, $page['page']);
 
 		// get the page domain
 		$parse = parse_url($url);
