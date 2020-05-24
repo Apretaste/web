@@ -266,11 +266,14 @@ class Service
 			$url = 'http:/' . $url;
 		}
 
-		$page = strip_tags($page, 'html meta body head script style a p label div pre h1 h2 h3 h4 h5 button i b u li ol ul fieldset small legend form input span button nav table tr th td thead img link');
+		$tidy = new tidy();
+		$page = $tidy->repairString($page);
 
-		$doc = new DOMDocument();
-
+		$doc  = new DomDocument('1.0', 'UTF-8');
+		$libxml_previous_state = libxml_use_internal_errors(TRUE);
 		@$doc->loadHTML($page);
+		libxml_clear_errors();
+		libxml_use_internal_errors($libxml_previous_state);
 
 		// links
 		$links = $doc->getElementsByTagName('a');
@@ -388,6 +391,7 @@ class Service
 
 		// get page from DOM
 		$page = $doc->saveHTML();
+		$page = strip_tags($page, 'html meta body head script style a p label div pre h1 h2 h3 h4 h5 button i b u li ol ul fieldset small legend form input span button nav table tr th td thead img link');
 
 		return [
 		  'page' => $page,
