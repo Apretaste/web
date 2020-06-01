@@ -11,19 +11,19 @@ use Apretaste\Challenges;
 
 class Service
 {
-
 	public $base;
 
 	/**
 	 * Check current version or person
 	 *
-	 * @param  \Apretaste\Request  $request
-	 * @param  \Apretaste\Response  $response
+	 * @param \Apretaste\Request $request
+	 * @param \Apretaste\Response $response
 	 *
 	 * @return bool
 	 * @throws \Framework\Alert
 	 */
-	public function checkVersion(Request $request, Response $response){
+	public function checkVersion(Request $request, Response $response)
+	{
 		if ($request->input->appVersion < '6.0.5') {
 			$response->setTemplate('message.ejs', [
 			  'header' => 'Actualice la app',
@@ -39,8 +39,8 @@ class Service
 	/**
 	 * Opens the browser screen
 	 *
-	 * @param  Request  $request
-	 * @param  Response  $response
+	 * @param Request $request
+	 * @param Response $response
 	 *
 	 * @return \Apretaste\Response
 	 * @throws \Framework\Alert
@@ -48,8 +48,9 @@ class Service
 	 */
 	public function _main(Request $request, Response $response)
 	{
-
-		if (!$this->checkVersion($request, $response)) return;
+		if (!$this->checkVersion($request, $response)) {
+			return;
+		}
 
 		// get data from the request
 		$query = isset($request->input->data->query) ? $request->input->data->query : '';
@@ -70,7 +71,7 @@ class Service
 
 			// create response
 			$response->setCache('day');
-			return $response->setTemplate('home.ejs', ['sites'=>$sites]);
+			return $response->setTemplate('home.ejs', ['sites' => $sites]);
 		}
 
 		//
@@ -101,7 +102,7 @@ class Service
 
 		// if nothing was passed, let the user know
 		if (empty($results)) {
-				return $response->setTemplate('message.ejs', [
+			return $response->setTemplate('message.ejs', [
 				'header' => 'No hay resultados',
 				'icon' => 'sentiment_very_dissatisfied',
 				'text' => 'Lo siento pero no hemos encontrado ningún resultado para su búsqueda. Por favor intente con otro término.',
@@ -117,8 +118,8 @@ class Service
 	/**
 	 * Get the user's browsing history
 	 *
-	 * @param  Request  $request
-	 * @param  Response  $response
+	 * @param Request $request
+	 * @param Response $response
 	 *
 	 * @return \Apretaste\Response
 	 * @throws \Framework\Alert
@@ -126,7 +127,9 @@ class Service
 	 */
 	public function _history(Request $request, Response &$response)
 	{
-		if (!$this->checkVersion($request, $response)) return;
+		if (!$this->checkVersion($request, $response)) {
+			return;
+		}
 
 		// get the history for the person
 		$pages = Database::query("
@@ -138,7 +141,7 @@ class Service
 
 		// if there is no data, show message
 		if (empty($pages)) {
-				return $response->setTemplate('message.ejs', [
+			return $response->setTemplate('message.ejs', [
 				'header' => 'Historial vacío',
 				'icon' => 'web',
 				'text' => 'Aún no ha abrierto ninguna pagina web, por lo cual su historial esta vacío. Navegue un rato por la web y luego regrese acá.',
@@ -153,8 +156,8 @@ class Service
 	/**
 	 * Download a website and return the array of files
 	 *
-	 * @param  String  $url
-	 * @param  Integer  $personId
+	 * @param String $url
+	 * @param Integer $personId
 	 *
 	 * @return String[]
 	 * @throws \Framework\Alert
@@ -196,7 +199,7 @@ class Service
 	/**
 	 * Search for a term in Bing and return formatted results
 	 *
-	 * @param  String  $q
+	 * @param String $q
 	 *
 	 * @return array
 	 * @throws \Framework\Alert
@@ -205,7 +208,9 @@ class Service
 	private function search($query)
 	{
 		// do not allow empty queries
-		if (empty($query)) return [];
+		if (empty($query)) {
+			return [];
+		}
 
 		// try to get results from the cache
 		$cache = TEMP_PATH  . '/cache/bing_' . md5($query) . '.cache';
@@ -219,7 +224,7 @@ class Service
 			$endpoint = Config::pick('bing')['endpoint'];
 			$key = Config::pick('bing')['key'];
 
-			// search using bing 
+			// search using bing
 			try {
 				$result = Crawler::get($endpoint . '/search?mkt=es-US&q=' . urlencode($query), 'GET', null, ["Ocp-Apim-Subscription-Key: $key"]);
 				$json = json_decode($result);
@@ -255,7 +260,8 @@ class Service
 	 *
 	 * @return array
 	 */
-	private function processPage($page, $url){
+	private function processPage($page, $url)
+	{
 		$images = [];
 
 		// clear $url
@@ -266,8 +272,7 @@ class Service
 
 		if (strpos($url, '//') === 0) {
 			$url = 'http:' . $url;
-		}
-		else if (strpos($url, '/') === 0) {
+		} elseif (strpos($url, '/') === 0) {
 			$url = 'http:/' . $url;
 		}
 
@@ -275,12 +280,12 @@ class Service
 		$tidy = new tidy();
 		$page = mb_convert_encoding($page, 'HTML-ENTITIES', 'UTF-8');
 		$page = $tidy->repairString($page, [
-		  'output-xhtml' => TRUE,
+		  'output-xhtml' => true,
 		], 'utf8');
 
 		// create DOM, ignore errors
-		$doc  = new DomDocument('1.0', 'UTF-8');
-		$libxml_previous_state = libxml_use_internal_errors(TRUE);
+		$doc = new DomDocument('1.0', 'UTF-8');
+		$libxml_previous_state = libxml_use_internal_errors(true);
 		@$doc->loadHTML($page);
 		libxml_clear_errors();
 		libxml_use_internal_errors($libxml_previous_state);
@@ -298,7 +303,7 @@ class Service
 			foreach ($links as $link) {
 				$href = $link->getAttribute('href');
 
-				if ($href === FALSE || empty($href)) {
+				if ($href === false || empty($href)) {
 					$href = $link->getAttribute('data-src');
 				}
 
@@ -316,8 +321,8 @@ class Service
 
 				$href = $link->getAttribute('href');
 				$href = $this->getFullHref($href, $url);
-				$link->setAttribute('onclick', "parent.send({command: 'web', data: {query: '".urlencode($href)."'}});");
-				$link->setAttribute('href',  '#!');
+				$link->setAttribute('onclick', "apretaste.send({command: 'web', data: {query: '".urlencode($href)."'}});");
+				$link->setAttribute('href', '#!');
 			}
 		}
 
@@ -329,18 +334,19 @@ class Service
 				/** @var DOMNode $image  */
 				$src = $image->getAttribute('src');
 
-				if (empty($src)) $src = $image->getAttribute('srcset');
+				if (empty($src)) {
+					$src = $image->getAttribute('srcset');
+				}
 
 				$img = null;
 				try {
 					$src = $this->getFullHref($src, $url);
 					$name = 'img'.uniqid();
-					$img  = Crawler::get($src);
+					$img = Crawler::get($src);
 					$images[$name] = $img;
 					$image->setAttribute('src', $name);
 					$image->setAttribute('srcset', $name);
 				} catch (Alert $a) {
-
 				}
 			}
 		}
@@ -350,15 +356,13 @@ class Service
 		if ($styles->length > 0) {
 
 			// You can modify, and even delete, nodes from a DOMNodeList if you iterate backwards
-			for ($i = $styles->length; --$i >= 0; ) {
+			for ($i = $styles->length; --$i >= 0;) {
 
 				/** @var \DOMElement $style */
 				$style = $styles->item($i);
 
 				if ($style->getAttribute('rel') === 'stylesheet') {
-
 					try {
-
 						$href = $style->getAttribute('href');
 						$href = $this->getFullHref($href, $url);
 
@@ -376,9 +380,7 @@ class Service
 
 						// remove external css
 						$style->parentNode->removeChild($style);
-
-					} catch(Alert $a){
-
+					} catch (Alert $a) {
 					}
 				}
 			}
@@ -388,7 +390,7 @@ class Service
 		$scripts = $doc->getElementsByTagName('script');
 
 		// You can modify, and even delete, nodes from a DOMNodeList if you iterate backwards
-		for ($i = $scripts->length; --$i >= 0; ) {
+		for ($i = $scripts->length; --$i >= 0;) {
 
 			/** @var \DOMElement $style */
 			$script = $scripts->item($i);
@@ -397,7 +399,6 @@ class Service
 			}
 
 			try {
-
 				$src = $script->getAttribute('src');
 				$src = $this->getFullHref($src, $url);
 
@@ -415,9 +416,7 @@ class Service
 
 				// remove external css
 				$script->parentNode->removeChild($script);
-
-			} catch(Alert $a){
-
+			} catch (Alert $a) {
 			}
 		}
 
@@ -438,10 +437,13 @@ class Service
 	 *
 	 * @return boolean
 	 */
-	private function isHttpURL($url) {
+	private function isHttpURL($url)
+	{
 		$url = trim(strtolower($url));
-		return stripos($url, 'http://') === 0 || stripos($url,
-			'https://') === 0;
+		return stripos($url, 'http://') === 0 || stripos(
+			$url,
+			'https://'
+		) === 0;
 	}
 
 	/**
@@ -451,7 +453,8 @@ class Service
 	 *
 	 * @return boolean
 	 */
-	private function isFtpURL($url) {
+	private function isFtpURL($url)
+	{
 		$url = strtolower(trim($url));
 		return stripos($url, 'ftp://') === 0;
 	}
@@ -459,7 +462,8 @@ class Service
 	/**
 	 * Return full HREF
 	 */
-	private function getFullHref($href, $url) {
+	private function getFullHref($href, $url)
+	{
 		$href = trim($href);
 		if ($href === '' || $href === 'javascript(0);' || $href === 'javascript:void(0);') {
 			return $url;
@@ -494,9 +498,8 @@ class Service
 
 		if ($this->base !== null) {
 			$base = $this->base;
-		}
-		else {
-			if ($parts === FALSE) {
+		} else {
+			if ($parts === false) {
 				return $href;
 			}
 
@@ -512,7 +515,7 @@ class Service
 				$exts = explode(' ', 'html htm php5 exe php jsp asp aspx jsf py');
 
 				foreach ($exts as $ext) {
-					if (stripos($p, '.' . $ext) !== FALSE) {
+					if (stripos($p, '.' . $ext) !== false) {
 						$base .= dirname($p).'/';
 						break;
 					}
