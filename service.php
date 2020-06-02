@@ -423,7 +423,7 @@ class Service
 		$head = $doc->getElementsByTagName('head')->item(0);
 
 		$script = $doc->createElement('script');
-		$script->setAttribute('src', '{{APP_LIB}}');
+		$script->setAttribute('src', 'app://assets/apretaste.js');
 		$head->appendChild($script);
 
 		// get page from DOM
