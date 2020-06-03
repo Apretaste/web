@@ -420,10 +420,9 @@ class Service
 			}
 		}
 
-		$head = $doc->getElementsByTagName('head')->item(0);
-
-		$script = $doc->createElement('script');
 		$appResources = "{{APP_RESOURCES}}";
+		$head = $doc->getElementsByTagName('head')->item(0);
+		$script = $doc->createElement('script');
 		$script->setAttribute('src', "$appResources/js/apretaste.js");
 		$head->appendChild($script);
 
