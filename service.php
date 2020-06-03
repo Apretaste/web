@@ -54,6 +54,7 @@ class Service
 
 		// get data from the request
 		$query = isset($request->input->data->query) ? $request->input->data->query : '';
+        $query = urldecode($query);
 
 		//
 		// SHOW welcome message when query is empty
