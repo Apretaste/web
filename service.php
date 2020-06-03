@@ -423,11 +423,13 @@ class Service
 		$head = $doc->getElementsByTagName('head')->item(0);
 
 		$script = $doc->createElement('script');
-		$script->setAttribute('src', 'app://assets/apretaste.js');
+		$appResources = "{{APP_RESOURCES}}";
+		$script->setAttribute('src', "$appResources/js/apretaste.js");
 		$head->appendChild($script);
 
 		// get page from DOM
 		$page = $doc->saveHTML();
+		$page = str_replace(urlencode($appResources), $appResources, $page);
 
 		//$page = strip_tags($page, '<html><meta><body><head><script><style><a><p><label><div><pre><h1><h2><h3><h4><h5><button><i><b><u><li><ol><ul><fieldset><small><legend><form><input><span><button><nav><table><tr><th><td><thead><img><link>');
 
