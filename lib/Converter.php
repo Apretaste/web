@@ -1,7 +1,9 @@
 <?php
+
 namespace Milanspv\InlineImages;
 
-class Converter {
+class Converter
+{
 	/**
 	 * The file path to convert (local or remote path)
 	 * @var string
@@ -12,7 +14,8 @@ class Converter {
 	 * Converter constructor
 	 * @param string $path The file path to convert (local or http path)
 	 */
-	function __construct($path = null) {
+	public function __construct($path = null)
+	{
 		$this->path = $path;
 	}
 
@@ -20,15 +23,16 @@ class Converter {
 	 * Convert the file to inline value (support any base64 format or raw utf8 format for SVG)
 	 * @return string the inline value
 	 */
-	function convert() {
+	public function convert()
+	{
 		$fetcher = new Fetcher($this->path);
 		$mime = $fetcher->getMimeType();
 		//if image is of type svg, we don't want to base64 it because it will often not work and it is larger
 		if (strpos($mime, 'svg') !== false) {
 			$content = explode(PHP_EOL, $fetcher->getFileData());
-			$output = array();
+			$output = [];
 
-			foreach($content as $line) {
+			foreach ($content as $line) {
 				//we dont want to keep <?xml and <!DOCTYPE values from SVG
 				if (strpos($line, '<?') === false && strpos($line, '<!') === false) {
 					$output[] = str_replace('"', '\'', $line);
@@ -45,7 +49,8 @@ class Converter {
 	 * Return the current file path
 	 * @return string
 	 */
-	function getPath() {
+	public function getPath()
+	{
 		return $this->path;
 	}
 

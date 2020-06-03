@@ -12,4 +12,3 @@ var_dump($oDoc);
 echo '#### Output (`__toString()`)'."\n";
 print $oDoc->__toString();
 echo "\n";
-
