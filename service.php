@@ -1,5 +1,7 @@
 <?php
 
+include __DIR__.'/lib/Encoding.php';
+
 use Apretaste\Request;
 use Apretaste\Response;
 use Framework\Utils;
@@ -8,6 +10,8 @@ use Framework\Config;
 use Framework\Crawler;
 use Framework\Database;
 use Apretaste\Challenges;
+use ForceUTF8\Encoding;
+
 
 class Service
 {
@@ -429,7 +433,7 @@ class Service
 
 		// get page from DOM
 		$page = $doc->saveHTML();
-		$page = mb_convert_encoding($page, 'UTF-8', mb_detect_encoding($page));
+		$page = Encoding::fixUTF8($page);
 
 		$page = str_replace(urlencode($appResources), $appResources, $page);
 
