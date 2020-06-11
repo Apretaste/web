@@ -400,20 +400,20 @@ class Service
 			}
 
 			try {
-				$src = $script->getAttribute('src');
+				/*$src = $script->getAttribute('src');
 				$src = $this->getFullHref($src, $url);
 
 				$remoteScript = Crawler::get($src);
-
+*/
 				/** @var \DOMNode $body  */
-				$body = $doc->getElementsByTagName('body')[0];
+				/*$body = $doc->getElementsByTagName('body')[0];
 
 				$new_elm = $doc->createElement('script', $remoteScript);
 				$elm_type_attr = $doc->createAttribute('type');
 				$elm_type_attr->value = 'text/javascript';
 
 				// append style tag
-				$body->appendChild($new_elm);
+				$body->appendChild($new_elm);*/
 
 				// remove external css
 				$script->parentNode->removeChild($script);
