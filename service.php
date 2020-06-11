@@ -433,7 +433,7 @@ class Service
 
 		// get page from DOM
 		$page = $doc->saveHTML();
-		$page = Encoding::fixUTF8($page);
+		$page = Encoding::toUFT8($page);
 
 		$page = str_replace(urlencode($appResources), $appResources, $page);
 
