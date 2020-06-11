@@ -429,7 +429,9 @@ class Service
 
 		// get page from DOM
 		$page = $doc->saveHTML();
-		$page = mb_convert_encoding(str_replace(urlencode($appResources), $appResources, $page), 'UTF-8');
+		$page = mb_convert_encoding($page, 'UTF-8', mb_detect_encoding($page));
+
+		$page = str_replace(urlencode($appResources), $appResources, $page);
 
 		//$page = strip_tags($page, '<html><meta><body><head><script><style><a><p><label><div><pre><h1><h2><h3><h4><h5><button><i><b><u><li><ol><ul><fieldset><small><legend><form><input><span><button><nav><table><tr><th><td><thead><img><link>');
 
