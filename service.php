@@ -2,6 +2,7 @@
 
 use Apretaste\Request;
 use Apretaste\Response;
+use Apretaste\Challenges;
 use Framework\Utils;
 use Framework\Alert;
 use Framework\Config;
