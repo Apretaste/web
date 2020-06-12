@@ -26,10 +26,10 @@ class Service
 	{
 		if ($request->input->appVersion < '6.0.5') {
 			$response->setTemplate('message.ejs', [
-			  'header' => 'Actualice la app',
-			  'icon' => 'sentiment_very_dissatisfied',
-			  'text' => 'Lo siento pero este servicio exige que se actualice la app a la version 6.0.5 o superior. ',
-			  'button' => ['href' => 'WEB', 'caption' => 'Intentar nuevamente'],
+				'header' => 'Actualice la app',
+				'icon' => 'sentiment_very_dissatisfied',
+				'text' => 'Lo siento pero este servicio exige que se actualice la app a la version 6.0.5 o superior. ',
+				'button' => ['href' => 'WEB', 'caption' => 'Intentar nuevamente'],
 			]);
 			return false;
 		}
@@ -54,7 +54,7 @@ class Service
 
 		// get data from the request
 		$query = isset($request->input->data->query) ? $request->input->data->query : '';
-        $query = urldecode($query);
+		$query = urldecode($query);
 
 		//
 		// SHOW welcome message when query is empty
