@@ -1,18 +1,24 @@
-<div class = "row">
-	<div class = "col s12">
-		<% for (var i = 0; i < results.length; i++) { var res = results[i]; %>
-			<div class = "box">
-				<a href = "#!"
-						onclick = "apretaste.send({
-								command: 'WEB',
-								data:{
-									query: results[<%= i %>].url
-								}})">
-					<div class = "title"><%= res.title %></div>
-					<div class = "url"><%= res.url %></div>
+<div class="row">
+	<div class="col s12">
+		<h1 class="no-mg-down">Resultados</h1>
+		<p class="no-mg-up">para <b><%= query %></b></p>
+
+		<% results.forEach(function(item) { %>
+			<div class="box">
+				<a href="#!" onclick="apretaste.send({command:'WEB', data:{query:'<%= item.url %>'}})">
+					<div class="title"><%= item.title %></div>
+					<div class="url"><%= item.url %></div>
 				</a>
-				<div class = "note"><%= res.note %></div>
+				<div class="note"><%= item.note %></div>
 			</div>
-		<% } %>
+		<% }) %>
 	</div>
+</div>
+
+<div class="bottom-space"></div>
+
+<div class="fixed-action-btn">
+	<a class="btn-floating btn-large waves-effect waves-light green" href="#!" onclick="apretaste.send({command:'WEB'})">
+		<i class="material-icons">arrow_back</i>
+	</a>
 </div>
