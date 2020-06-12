@@ -1,5 +1,7 @@
 <?php
 
+include __DIR__.'/lib/Encoding.php';
+
 use Apretaste\Request;
 use Apretaste\Response;
 use Apretaste\Challenges;
@@ -8,6 +10,7 @@ use Framework\Alert;
 use Framework\Config;
 use Framework\Crawler;
 use Framework\Database;
+use ForceUTF8\Encoding;
 
 class Service
 {
@@ -400,20 +403,20 @@ class Service
 			}
 
 			try {
-				$src = $script->getAttribute('src');
+				/*$src = $script->getAttribute('src');
 				$src = $this->getFullHref($src, $url);
 
 				$remoteScript = Crawler::get($src);
-
+*/
 				/** @var \DOMNode $body  */
-				$body = $doc->getElementsByTagName('body')[0];
+				/*$body = $doc->getElementsByTagName('body')[0];
 
 				$new_elm = $doc->createElement('script', $remoteScript);
 				$elm_type_attr = $doc->createAttribute('type');
 				$elm_type_attr->value = 'text/javascript';
 
 				// append style tag
-				$body->appendChild($new_elm);
+				$body->appendChild($new_elm);*/
 
 				// remove external css
 				$script->parentNode->removeChild($script);
@@ -429,6 +432,8 @@ class Service
 
 		// get page from DOM
 		$page = $doc->saveHTML();
+		//$page = Encoding::toUFT8($page);
+        $page = mb_convert_encoding($page, 'HTML-ENTITIES', 'UTF-8');
 		$page = str_replace(urlencode($appResources), $appResources, $page);
 
 		//$page = strip_tags($page, '<html><meta><body><head><script><style><a><p><label><div><pre><h1><h2><h3><h4><h5><button><i><b><u><li><ol><ul><fieldset><small><legend><form><input><span><button><nav><table><tr><th><td><thead><img><link>');
