@@ -74,7 +74,6 @@ class Service
 				LIMIT 9');
 
 			// create response
-			$response->setCache('day');
 			return $response->setTemplate('home.ejs', ['sites' => $sites]);
 		}
 
