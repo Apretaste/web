@@ -5,6 +5,7 @@ include __DIR__.'/lib/Encoding.php';
 use Apretaste\Request;
 use Apretaste\Response;
 use Apretaste\Challenges;
+use Framework\Core;
 use Framework\Utils;
 use Framework\Alert;
 use Framework\Config;
@@ -170,7 +171,7 @@ class Service
 	 * @param String $url
 	 * @param Integer $personId
 	 *
-	 * @return String[]
+	 * @return String[] | bool
 	 * @throws \Framework\Alert
 	 * @author salvipascual
 	 *
@@ -184,6 +185,7 @@ class Service
 				CURLOPT_USERAGENT => 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/83.0.4103.88 Mobile/15E148 Safari/604.1'
 			]);
 		} catch (Alert $a) {
+			Core::log("[ERROR] browse: ".$a->getMessage()."\n".$a->getTraceAsString()."\n", "service-web.log");
 			return false;
 		}
 
@@ -368,6 +370,7 @@ class Service
 					$image->setAttribute('src', $name);
 					$image->setAttribute('srcset', $name);
 				} catch (Alert $a) {
+					Core::log("[WARNING] processPage: ".$a->getMessage()."\n".$a->getTraceAsString()."\n", "service-web.log");
 				}
 			}
 		}
@@ -437,7 +440,7 @@ class Service
 
 				// remove external css
 				$script->parentNode->removeChild($script);
-			} catch (Alert $a) {
+			} catch (Exception $a) {
 			}
 		}
 
@@ -540,7 +543,7 @@ class Service
 
 			$base = $parts['scheme'].'://'.$parts['host'].':'.$parts['port'].'/';
 
-			if (isset($parts['path'])) {
+			if (isset($parts['path']) && $href[0] != "/") {
 				$p = $parts['path'];
 
 				$exts = explode(' ', 'html htm php5 exe php jsp asp aspx jsf py');
