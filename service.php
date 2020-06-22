@@ -85,7 +85,15 @@ class Service
 
 			// get the page files
 			$files = $this->browse($query, $request->person->id);
-
+			if ($files === false) {
+				$response->setTemplate('message.ejs', [
+					'header' => 'No se pudo obtener el enlace',
+					'icon' => 'sentiment_very_dissatisfied',
+					'text' => 'Lo siento pero el enlace solicitado no pudo ser obtenido.',
+					'button' => ['href' => 'WEB', 'caption' => 'Regresar'],
+				]);
+				return;
+			}
 			// complete challenge
 			Challenges::complete('open-web-page', $request->person->id);
 
@@ -176,8 +184,8 @@ class Service
 				CURLOPT_USERAGENT => 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/83.0.4103.88 Mobile/15E148 Safari/604.1'
 			]);
 		} catch (Alert $a) {
+			return false;
 		}
-
 
 		// convert links to navigate using Apretaste
 		$page = $this->processPage($page, $url);
