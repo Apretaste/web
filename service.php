@@ -503,7 +503,7 @@ class Service
 			return 'http:' . $href;
 		}
 		if (strtolower(strpos($href, '?') === 0)) {
-			if ($this->base !== null && $href[0] != "/") {
+			if ($this->base !== null) {
 				return $this->base . $href;
 			}
 			return $url . $href;
@@ -527,7 +527,7 @@ class Service
 
 		$parts = parse_url($url);
 
-		if ($this->base !== null) {
+		if ($this->base !== null && $href[0] != "/") {
 			$base = $this->base;
 		} else {
 			if ($parts === false) {
