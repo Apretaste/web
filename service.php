@@ -503,7 +503,7 @@ class Service
 			return 'http:' . $href;
 		}
 		if (strtolower(strpos($href, '?') === 0)) {
-			if ($this->base !== null) {
+			if ($this->base !== null && $href[0] != "/") {
 				return $this->base . $href;
 			}
 			return $url . $href;
