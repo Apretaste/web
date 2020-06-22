@@ -171,7 +171,13 @@ class Service
 	{
 		$files = [];
 		// get the code of the page
-		$page = Crawler::getCache($url);
+		try {
+			$page = Crawler::getCache($url, 'GET', null, [], [
+				CURLOPT_USERAGENT => 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/83.0.4103.88 Mobile/15E148 Safari/604.1'
+			]);
+		} catch (Alert $a) {
+		}
+
 
 		// convert links to navigate using Apretaste
 		$page = $this->processPage($page, $url);
@@ -331,9 +337,13 @@ class Service
 
 		// images
 		$imagesTags = $doc->getElementsByTagName('img');
-
+		$i = 0;
 		if ($imagesTags->length > 0) {
 			foreach ($imagesTags as $image) {
+				$i++;
+				if ($i > 5) {
+					break;
+				}
 				/** @var DOMNode $image  */
 				$src = $image->getAttribute('src');
 
@@ -432,7 +442,7 @@ class Service
 		// get page from DOM
 		$page = $doc->saveHTML();
 		//$page = Encoding::toUFT8($page);
-        $page = mb_convert_encoding($page, 'HTML-ENTITIES', 'UTF-8');
+		$page = mb_convert_encoding($page, 'HTML-ENTITIES', 'UTF-8');
 		$page = str_replace(urlencode($appResources), $appResources, $page);
 
 		//$page = strip_tags($page, '<html><meta><body><head><script><style><a><p><label><div><pre><h1><h2><h3><h4><h5><button><i><b><u><li><ol><ul><fieldset><small><legend><form><input><span><button><nav><table><tr><th><td><thead><img><link>');
@@ -517,7 +527,7 @@ class Service
 			}
 
 			if (!isset($parts['port'])) {
-				$parts['port'] = 80;
+				$parts['port'] = ($parts['scheme'] == 'http' ? 80: 443);
 			}
 
 			$base = $parts['scheme'].'://'.$parts['host'].':'.$parts['port'].'/';
