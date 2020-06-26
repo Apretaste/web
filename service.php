@@ -206,6 +206,7 @@ class Service
 		$parse = parse_url($url);
 		$domain = $parse['host'] ?? $parse['path'];
 
+        $url = Database::escape($url);
 		// save the search history
 		Database::query("
 			INSERT INTO _web_history (person_id, url, domain) 
