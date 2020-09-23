@@ -178,6 +178,12 @@ class Service
 	 */
 	private function browse($url, $personId)
 	{
+		$headers = Crawler::getHeaders($url);
+		if ( ! in_array($headers['content-type'] ?? '',
+			['text/html', 'text/plain', 'text/json', 'application/json', 'application/xml', 'text/xml'])) {
+			return false;
+		}
+
 		$files = [];
 		// get the code of the page
 		try {
@@ -298,7 +304,7 @@ class Service
 
 		// repair html
 		$tidy = new tidy();
-		$page = mb_convert_encoding($page, 'HTML-ENTITIES', 'UTF-8');
+		$page = @mb_convert_encoding($page, 'HTML-ENTITIES', 'UTF-8');
 		$page = $tidy->repairString($page, [
 		  'output-xhtml' => true,
 		], 'utf8');
