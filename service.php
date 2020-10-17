@@ -82,7 +82,7 @@ class Service
 		// DOWNLOAD the page if a valid domain name or URL is passed
 		//
 
-		if (Utils::isDomainValid($query) || filter_var($query, FILTER_VALIDATE_URL)) {
+		if (Utils::isDomainValid($query) || filter_var(str_replace(' ','+',$query), FILTER_VALIDATE_URL)) {
 
 			// get the page files
 			$files = $this->browse($query, $request->person->id);
@@ -180,6 +180,8 @@ class Service
 	 */
 	private function browse($url, $personId)
 	{
+		$url = str_replace(' ','+', $url);
+
 		// check valid content type
 		$headers = Crawler::getHeaders($url);
 		$contentType = $headers['content-type'] ?? '';
