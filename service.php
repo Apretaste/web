@@ -361,13 +361,13 @@ class Service
 					$href = $link->getAttribute('data-src');
 				}
 
-				/*if (strpos($href, '#') === 0) {
+				if (strpos($href, '#') === 0) {
 					$link->setAttribute('href', '#!');
 					$link->setAttribute('anchor-link', $href);
 					$link->setAttribute('onclick', 'return false;');
 					$link->setAttribute('class', $link->getAttribute('class').' anchor-link');
 					continue;
-				}*/
+				}
 
 				$href = $link->getAttribute('href');
 				$href = $this->getFullHref($href, $url);
