@@ -478,7 +478,22 @@ class Service
 		$appResources = "{{APP_RESOURCES}}";
 		$head = $doc->getElementsByTagName('head')->item(0);
 		$script = $doc->createElement('script');
-		$script->setAttribute('src', "$appResources/js/apretaste.js");
+		$script->textContent = 'var apretaste = {
+				send: function (json) {
+					sendAp.postMessage(JSON.stringify(json));
+					return false;
+				},
+			
+				back: function () {
+					backAp.postMessage("");
+					return false;
+				}
+			}
+			
+			function loadFileToBase64(type){
+				loadFileToBase64Ap.postMessage(type);
+			}';
+		//$script->setAttribute('src', "$appResources/js/apretaste.js");
 		$head->appendChild($script);
 
 		// get page from DOM
