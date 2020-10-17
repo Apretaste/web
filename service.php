@@ -28,7 +28,7 @@ class Service
 	 */
 	public function checkVersion(Request $request, Response $response)
 	{
-		if ($request->input->appVersion < '6.0.5') {
+		if ($request->input->appVersion < '6.0.5' && $request->input->environment !== 'web') {
 			$response->setTemplate('message.ejs', [
 				'header' => 'Actualice la app',
 				'icon' => 'sentiment_very_dissatisfied',
@@ -178,9 +178,20 @@ class Service
 	 */
 	private function browse($url, $personId)
 	{
+		// check valid content type
 		$headers = Crawler::getHeaders($url);
-		if ( ! in_array($headers['content-type'] ?? '',
-			['text/html', 'text/plain', 'text/json', 'application/json', 'application/xml', 'text/xml'])) {
+		$contentType = $headers['content-type'] ?? '';
+
+		$valid = false;
+
+		foreach (['text/html', 'text/plain', 'text/json', 'application/json', 'application/xml', 'text/xml'] as $validContentType) {
+			if (stripos($contentType, $validContentType) !== false) {
+				$valid = true;
+				break;
+			}
+		}
+
+		if (!$valid) {
 			return false;
 		}
 
