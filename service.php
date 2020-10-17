@@ -82,10 +82,11 @@ class Service
 		// DOWNLOAD the page if a valid domain name or URL is passed
 		//
 
-		if (Utils::isDomainValid($query)) {
+		if (Utils::isDomainValid($query) || filter_var($query, FILTER_VALIDATE_URL)) {
 
 			// get the page files
 			$files = $this->browse($query, $request->person->id);
+
 			if ($files === false) {
 				$response->setTemplate('message.ejs', [
 					'header' => 'No se pudo obtener el enlace',
@@ -95,6 +96,7 @@ class Service
 				]);
 				return;
 			}
+
 			// complete challenge
 			Challenges::complete('open-web-page', $request->person->id);
 
