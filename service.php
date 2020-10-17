@@ -361,17 +361,13 @@ class Service
 					$href = $link->getAttribute('data-src');
 				}
 
-				if (strpos($href, '#') === 0) {
+				/*if (strpos($href, '#') === 0) {
 					$link->setAttribute('href', '#!');
 					$link->setAttribute('anchor-link', $href);
 					$link->setAttribute('onclick', 'return false;');
 					$link->setAttribute('class', $link->getAttribute('class').' anchor-link');
 					continue;
-				}
-
-				if (stripos($href, 'mailto:') === 0) {
-					continue;
-				}
+				}*/
 
 				$href = $link->getAttribute('href');
 				$href = $this->getFullHref($href, $url);
