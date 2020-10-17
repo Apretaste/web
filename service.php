@@ -478,7 +478,7 @@ class Service
 		$appResources = "{{APP_RESOURCES}}";
 		$head = $doc->getElementsByTagName('head')->item(0);
 		$script = $doc->createElement('script');
-		$script->textContent = 'var apretaste = {
+		$content = 'var apretaste = {
 				send: function (json) {
 					sendAp.postMessage(JSON.stringify(json));
 					return false;
@@ -493,6 +493,8 @@ class Service
 			function loadFileToBase64(type){
 				loadFileToBase64Ap.postMessage(type);
 			}';
+		$script->appendChild($doc->createTextNode ( $content ));
+
 		//$script->setAttribute('src', "$appResources/js/apretaste.js");
 		$head->appendChild($script);
 
