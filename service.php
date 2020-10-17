@@ -208,18 +208,26 @@ class Service
 		}
 
 		$file = LOCAL_TEMP_FOLDER . 'index.html';
-		if ($contentType == 'text/html') {
-			// convert links to navigate using Apretaste
-			$page = $this->processPage($page, $url);
-			file_put_contents($file, $page['page']);
+		switch ($contentType) {
+			case 'text/html':
+				// convert links to navigate using Apretaste
+				$page = $this->processPage($page, $url);
+				file_put_contents($file, $page['page']);
 
-			// get the files for the page
-			foreach ($page['images'] as $name => $content) {
-				file_put_contents(LOCAL_TEMP_FOLDER. $name, $content);
-				$files[] = LOCAL_TEMP_FOLDER. $name;
-			}
-		} else {
-			file_put_contents($file, $page);
+				// get the files for the page
+				foreach ($page['images'] as $name => $content) {
+					file_put_contents(LOCAL_TEMP_FOLDER. $name, $content);
+					$files[] = LOCAL_TEMP_FOLDER. $name;
+				}
+			break;
+
+			case 'text/json':
+			case 'application/json':
+				$page = json_encode(json_decode($page), JSON_PRETTY_PRINT);
+				file_put_contents($file, '<html><body>'.nl2br($page).'</body></body>');
+				break;
+			default:
+				file_put_contents($file, '<html><body>'.nl2br($page).'</body></body>');
 		}
 
 		$files[] = $file;
