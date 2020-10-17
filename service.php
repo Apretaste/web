@@ -224,7 +224,7 @@ class Service
 			case 'text/json':
 			case 'application/json':
 				$page = json_encode(json_decode($page), JSON_PRETTY_PRINT);
-				file_put_contents($file, '<html><body>'.nl2br($page).'</body></body>');
+				file_put_contents($file, '<html><body><pre>'.$page.'</pre></body></body>');
 				break;
 			default:
 				file_put_contents($file, '<html><body>'.nl2br($page).'</body></body>');
