@@ -186,6 +186,7 @@ class Service
 
 		foreach (['text/html', 'text/plain', 'text/json', 'application/json', 'application/xml', 'text/xml'] as $validContentType) {
 			if (stripos($contentType, $validContentType) !== false) {
+				$contentType = $validContentType;
 				$valid = true;
 				break;
 			}
@@ -206,24 +207,28 @@ class Service
 			return false;
 		}
 
-		// convert links to navigate using Apretaste
-		$page = $this->processPage($page, $url);
-
 		$file = LOCAL_TEMP_FOLDER . 'index.html';
-		file_put_contents($file, $page['page']);
-		$files[] = $file;
+		if ($contentType == 'text/html') {
+			// convert links to navigate using Apretaste
+			$page = $this->processPage($page, $url);
+			file_put_contents($file, $page['page']);
 
-		// get the files for the page
-		foreach ($page['images'] as $name => $content) {
-			file_put_contents(LOCAL_TEMP_FOLDER. $name, $content);
-			$files[] = LOCAL_TEMP_FOLDER. $name;
+			// get the files for the page
+			foreach ($page['images'] as $name => $content) {
+				file_put_contents(LOCAL_TEMP_FOLDER. $name, $content);
+				$files[] = LOCAL_TEMP_FOLDER. $name;
+			}
+		} else {
+			file_put_contents($file, $page);
 		}
+
+		$files[] = $file;
 
 		// get the page domain
 		$parse = parse_url($url);
 		$domain = $parse['host'] ?? $parse['path'];
-
         $url = Database::escape($url);
+
 		// save the search history
 		Database::query("
 			INSERT INTO _web_history (person_id, url, domain) 
