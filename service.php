@@ -340,6 +340,7 @@ class Service
 		// create DOM, ignore errors
 		$doc = new DomDocument('1.0', 'UTF-8');
 		$libxml_previous_state = libxml_use_internal_errors(true);
+		$page = utf8_encode($page);
 		@$doc->loadHTML($page);
 		libxml_clear_errors();
 		libxml_use_internal_errors($libxml_previous_state);
