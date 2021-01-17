@@ -500,7 +500,10 @@ class Service
 		$head->appendChild($script);
 
 		// get page from DOM
+		$libxml_previous_state = libxml_use_internal_errors(true);
 		$page = $doc->saveHTML();
+		libxml_clear_errors();
+		libxml_use_internal_errors($libxml_previous_state);
 		//$page = Encoding::toUFT8($page);
 		$page = mb_convert_encoding($page, 'HTML-ENTITIES', 'UTF-8');
 		$page = str_replace(urlencode($appResources), $appResources, $page);
